@@ -1,0 +1,101 @@
+import { Link } from "react-router-dom";
+
+export default function Landing() {
+  return (
+    <main>
+      <header
+        style={{
+          background: "linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%)",
+          color: "white",
+          padding: "3rem 0",
+          textAlign: "center",
+        }}
+      >
+        <div className="container">
+          <h1 style={{ margin: "0 0 0.5rem", fontSize: "2.25rem", fontWeight: 700 }}>
+            רוקדים 300 — ריקודי עם בישראל
+          </h1>
+          <p style={{ margin: 0, fontSize: "1.15rem", opacity: 0.95 }}>
+            רעיון לשיפור חוויית הריקוד והנגישות לרוקדים בכל הרמות
+          </p>
+          <div style={{ marginTop: "1.5rem" }}>
+            <Link to="/register" className="btn" style={{ background: "white", color: "var(--accent)", marginLeft: "0.5rem" }}>
+              הצטרפו אלינו
+            </Link>
+            <Link to="/login" className="btn" style={{ background: "transparent", color: "white", border: "2px solid white" }}>
+              כבר רשומים? התחברו
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      <section className="section" style={{ background: "var(--problem-bg)", borderBottom: "3px solid var(--problem)" }}>
+        <div className="container">
+          <h2 className="section-title" style={{ color: "var(--problem)" }}>
+            <span aria-hidden>⚠️</span> הבעיה
+          </h2>
+          <div className="section-content" style={{ color: "var(--step)" }}>
+            <p>
+              מאז שנות ה־40 נוצרו כ־5,000 ריקודי עם, וכ־100 ריקודים חדשים נוספים מדי שנה. לרוקדים ותיקים שיוצאים לרקוד כמה פעמים בשבוע זה מצוין, אבל רבים מביעים בפורומים תסכול מהכמות והקצב. בפועל יש גם רבים שהתחילו, ראו שקשה להשתלב, ופרשו — ורבים שלא מנסים מראש כשהם רואים את המצב.
+            </p>
+            <p>
+              חוגי מתחילים נותנים תשובה חלקית, אבל כי אין סטנדרט וכל מרקיד מתאפיין ברפרטואר משלו — המעבר מרוקד מתחיל או בינוני לרוקד "על מלא" קשה מאוד. האחוז הנמוך של אלה שהתחילו בחוג מתחילים והגיעו לרמה גבוהה הוא אינדיקציה ברורה לבעיה.
+            </p>
+            <p>
+              סצנת ריקודי העם מצליחה וכיפית — אבל אנחנו מאמינים שהפוטנציאל גדול בהרבה ואפשר לשפר את הקיים.
+            </p>
+            <p>
+              <strong>מידע חסר:</strong> בעולם שמריץ קדימה שימוש במידע, בריקודי עם חסר מידע בסיסי: כמה ריקודים משותפים יש ברפרטואר של שני מרקידים? אילו ריקודים חדשים באמת נכנסים לרפרטואר? ולגבי הרוקד עצמו — כמה ריקודים אני יודע? מה כדאי ללמוד ואיך? איך אסתדר אם אלך להרקדה מסוימת? אין כיום דרך לקבל תשובות מדויקות. הבעיה מחמירה עם הזמן, וברור שצריכה להיות דרך לשיפור.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="section" style={{ background: "var(--vision-bg)", borderBottom: "3px solid var(--vision)" }}>
+        <div className="container">
+          <h2 className="section-title" style={{ color: "var(--vision)" }}>
+            <span aria-hidden>🎯</span> החזון
+          </h2>
+          <div className="section-content" style={{ color: "var(--step)" }}>
+            <p>
+              <strong>אוסף ריקודים סטנדרטיים</strong> — כ־300 ריקודים, שכל קהילת הרוקדים משפיעה יחד על הרכב הרשימה. חציים זוגות וחציים מעגלים (מכל הסוגים והרמות), ועוד 150 מעגלים ו־150 זוגות לרוקדים ש"רוקדים רק מעגלים" או "רוקדים רק זוגות". דינמיות מתונה: פעם בחודש בכל קבוצה של 150 — נכנסים 2 ריקודים (ותיק + חדש) ויוצאים 2, כשההחלטה מתקבלת בדמוקרטיה של קהילת הרוקדים. כך בכל שנה מוחלפים 48 ריקודים, 24 מהם חדשים לגמרי — וריקוד חדש שנכנס הוא בוודאות רצוי על ידי רבים, ולא יילמד פעמיים־שלוש וייעלם. המספרים לא קדושים ויכולים להשתנות לפי רצון הרוקדים.
+            </p>
+            <p>
+              אחרי בניית "ריקודי הסטנדרט" והמנגנונים הדמוקרטיים — יוכלו להיווצר חוגים והרקדות סביב זה. למשל: מערכת שתאסוף רצונות ותציע מיקום וזמן להרקדות שמתאימים לכמה שיותר אנשים; כשרוקדים נרשמים להרקדה, המערכת תבנה רשימת ריקודים ולימוד שמתאימים למי שבא (ואפשר להוסיף חצי שעת בקשות בסוף). המערכת תוכל גם לתכנן מרתונים או סופ״שים אידיאליים לקהל.
+            </p>
+            <p>
+              חוגי מתחילים יוכלו לכוון לרמות שונות של הכרת הסטנדרט; רוקדים חדשים וותיקים יידעו כמה הם יודעים ומה לעשות כדי להתקדם. הדרך להיות רוקד שמסתדר מעולה ברוב ההרקדות תהיה פשוטה יותר. גם הרקדות קיימות ותיקות יוכלו להגדיר את עצמן ביחס לסטנדרט — אנחנו מאמינים שהשינוי ייתן הזדמנויות למרקידים חדשים, יגדיל את מספר הרוקדים וישפר גם את מצב המרקידים הותיקים.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="section" style={{ background: "var(--step-bg)", borderBottom: "3px solid var(--step)" }}>
+        <div className="container">
+          <h2 className="section-title" style={{ color: "var(--step)" }}>
+            <span aria-hidden>👣</span> הצעד הראשון
+          </h2>
+          <div className="section-content" style={{ color: "var(--step)" }}>
+            <p>
+              כל רוקד שחושב שיש הגיון במהלך — בלי קשר לרמתו — וגם מי שרקדו בעבר ואולי יחזרו, מוזמנים להיכנס לאתר <strong>רוקדים 300</strong> (rokdim300.co.il) ולכתוב על עצמם בטקסט חופשי: ניסיון, מיקום מגורים, איפה ומתי מעוניינים לרקוד, מה רוקדים ומה יודעים, ומה דעתם על הרעיון ועל הרשימה. נשתמש ב־AI כדי לנתח את המידע ביעילות. אם אתם מוכנים להקדיש קצת זמן — מוזמנים לעבור על רשימת הריקודים ולדרג: באיזו רמה אתם יודעים כל ריקוד, וכמה אתם מרוצים כששמים אותו.
+            </p>
+            <p>
+              <strong>אם מספיק רוקדים יירשמו וישתתפו — נוכל להתקדם לצעדים הבאים ולממש את החזון.</strong>
+            </p>
+            <div style={{ marginTop: "1.5rem" }}>
+              <Link to="/register" className="btn btn-primary">
+                הרשמה והצטרפות
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer style={{ padding: "2rem 0", textAlign: "center", color: "var(--text-muted)", fontSize: "0.9rem" }}>
+        <div className="container">
+          רוקדים 300 — ריקודי עם בישראל · rokdim300.co.il
+        </div>
+      </footer>
+    </main>
+  );
+}

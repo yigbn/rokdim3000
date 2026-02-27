@@ -1,0 +1,157 @@
+:root {
+  --bg: #faf8f5;
+  --surface: #ffffff;
+  --text: #1a1a1a;
+  --text-muted: #555;
+  --accent: #c45c26;
+  --accent-light: #e8a87c;
+  --accent-dark: #9b3d12;
+  --success: #2d6a4f;
+  --success-bg: #d8f3dc;
+  --problem: #6a1d1d;
+  --problem-bg: #ffd6d6;
+  --vision: #1b4965;
+  --vision-bg: #bee9e8;
+  --step: #5c4d3c;
+  --step-bg: #f5e6d3;
+  --border: #e0d9d0;
+  --font: "Heebo", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 18px;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.65;
+  direction: rtl;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+button {
+  font-family: var(--font);
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+input,
+textarea {
+  font-family: var(--font);
+  font-size: 1rem;
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+.section {
+  padding: 2.5rem 0;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-content {
+  margin: 0;
+}
+
+.section-content p {
+  margin: 0 0 1rem;
+}
+.section-content p:last-child {
+  margin-bottom: 0;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+.btn-primary:hover {
+  background: var(--accent-dark);
+}
+.btn-secondary {
+  background: var(--surface);
+  color: var(--accent);
+  border: 2px solid var(--accent);
+}
+.btn-secondary:hover {
+  background: var(--accent-light);
+  color: white;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+.form-group label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.35rem;
+}
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+}
+.form-group textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(196, 92, 38, 0.2);
+}
+
+.error-msg {
+  color: var(--problem);
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+.success-msg {
+  color: var(--success);
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
