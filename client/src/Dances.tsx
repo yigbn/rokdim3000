@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "./auth-context";
 import {
@@ -120,6 +120,8 @@ export default function Dances() {
     setForm({
       name: d.name,
       type: d.type,
+      creator: d.creator ?? undefined,
+      yearOfCreation: d.yearOfCreation ?? undefined,
       category: d.category ?? undefined,
       difficultyLevel: d.difficultyLevel ?? undefined,
       youtubeLink: d.youtubeLink ?? undefined,
@@ -207,7 +209,26 @@ export default function Dances() {
               </div>
               <button type="submit" className="btn btn-primary">הוסף</button>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.75rem", marginTop: "0.75rem" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "0.75rem", marginTop: "0.75rem" }}>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label>יוצר</label>
+                <input
+                  value={form.creator ?? ""}
+                  onChange={(e) => setForm((f) => ({ ...f, creator: e.target.value || undefined }))}
+                  placeholder="אופציונלי"
+                />
+              </div>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label>שנת יצירה</label>
+                <input
+                  type="number"
+                  min={1900}
+                  max={2100}
+                  value={form.yearOfCreation ?? ""}
+                  onChange={(e) => setForm((f) => ({ ...f, yearOfCreation: e.target.value ? parseInt(e.target.value, 10) : undefined }))}
+                  placeholder="אופציונלי"
+                />
+              </div>
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label>קטגוריה</label>
                 <input
@@ -224,7 +245,7 @@ export default function Dances() {
                   placeholder="אופציונלי"
                 />
               </div>
-              <div className="form-group" style={{ marginBottom: 0 }}>
+              <div className="form-group" style={{ marginBottom: 0, gridColumn: "1 / -1" }}>
                 <label>קישור יוטיוב</label>
                 <input
                   type="url"
@@ -292,6 +313,8 @@ export default function Dances() {
                 <tr style={{ borderBottom: "2px solid var(--border)" }}>
                   <th style={{ textAlign: "right", padding: "0.5rem" }}>שם</th>
                   <th style={{ textAlign: "right", padding: "0.5rem" }}>סוג</th>
+                  <th style={{ textAlign: "right", padding: "0.5rem" }}>יוצר</th>
+                  <th style={{ textAlign: "right", padding: "0.5rem" }}>שנה</th>
                   <th style={{ textAlign: "right", padding: "0.5rem" }}>קטגוריה</th>
                   <th style={{ textAlign: "right", padding: "0.5rem" }}>קושי</th>
                   <th style={{ textAlign: "right", padding: "0.5rem" }}>יוטיוב</th>
@@ -311,7 +334,7 @@ export default function Dances() {
                   >
                     {editingId === d.id ? (
                       <>
-                        <td colSpan={isAdmin ? 6 : 5} style={{ padding: "0.75rem" }}>
+                        <td colSpan={isAdmin ? 8 : 7} style={{ padding: "0.75rem" }}>
                           <form onSubmit={(e) => handleUpdate(e, d.id)} style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", alignItems: "flex-end" }}>
                             <div className="form-group" style={{ marginBottom: 0, minWidth: 120 }}>
                               <label>שם</label>
@@ -324,6 +347,14 @@ export default function Dances() {
                                   <option key={o.value} value={o.value}>{o.label}</option>
                                 ))}
                               </select>
+                            </div>
+                            <div className="form-group" style={{ marginBottom: 0, minWidth: 100 }}>
+                              <label>יוצר</label>
+                              <input value={form.creator ?? ""} onChange={(e) => setForm((f) => ({ ...f, creator: e.target.value || undefined }))} />
+                            </div>
+                            <div className="form-group" style={{ marginBottom: 0, minWidth: 70 }}>
+                              <label>שנה</label>
+                              <input type="number" min={1900} max={2100} value={form.yearOfCreation ?? ""} onChange={(e) => setForm((f) => ({ ...f, yearOfCreation: e.target.value ? parseInt(e.target.value, 10) : undefined }))} placeholder="שנה" />
                             </div>
                             <div className="form-group" style={{ marginBottom: 0, minWidth: 100 }}>
                               <label>קטגוריה</label>
@@ -346,6 +377,8 @@ export default function Dances() {
                       <>
                         <td style={{ padding: "0.5rem" }}>{d.name}</td>
                         <td style={{ padding: "0.5rem" }}>{getTypeLabel(d.type)}</td>
+                        <td style={{ padding: "0.5rem" }}>{d.creator ?? "—"}</td>
+                        <td style={{ padding: "0.5rem" }}>{d.yearOfCreation ?? "—"}</td>
                         <td style={{ padding: "0.5rem" }}>{d.category ?? "—"}</td>
                         <td style={{ padding: "0.5rem" }}>{d.difficultyLevel ?? "—"}</td>
                         <td style={{ padding: "0.5rem" }}>

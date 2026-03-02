@@ -51,13 +51,21 @@ npm run dev:client  # client only, port 5173 (proxies /api and /uploads to 3000)
 - **Profile:** Free text (experience, location, when/where you want to dance, opinions), phone, profile image upload (editable on each visit).
 - **DB:** `users` (email, password_hash, phone, free_text, image_path, reset_token), `dances` (name, type, category, difficulty_level, youtube_link). Add dance data later via DB or admin.
 
-## Add dances
+## Initial dance list (one-time seed)
+
+To load the 400 recommended dances from [harokdim.org](https://www.harokdim.org/dances/view_list.php) as the starting basis, run **once**:
+
+```bash
+npm run db:seed-harokdim
+```
+
+This replaces all dances in the DB with those 400 (name, type, creator, year). It does **not** run when the app starts. After that, use the app (as admin) to edit, delete, and add dances normally.
+
+## Add dances manually (optional)
 
 Insert into SQLite (e.g. `server/data/rokdim300.db`):
 
 ```sql
-INSERT INTO dances (name, type, category, difficulty_level, youtube_link, created_at)
-VALUES ('ריקוד לדוגמה', 'circle', 'עממי', 'beginner', 'https://youtube.com/...', unixepoch() * 1000);
+INSERT INTO dances (name, type, creator, year_of_creation, category, difficulty_level, youtube_link, created_at)
+VALUES ('ריקוד לדוגמה', 'circle', 'מחבר', 1990, 'עממי', 'beginner', 'https://youtube.com/...', unixepoch() * 1000);
 ```
-
-You can add more columns/categories later.

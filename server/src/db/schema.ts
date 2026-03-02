@@ -28,6 +28,8 @@ export function initDb(db: Database.Database): void {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       type TEXT NOT NULL,
+      creator TEXT,
+      year_of_creation INTEGER,
       category TEXT,
       difficulty_level TEXT,
       youtube_link TEXT,
@@ -53,4 +55,17 @@ export function initDb(db: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     CREATE INDEX IF NOT EXISTS idx_users_reset_token ON users(reset_token);
   `);
+  migrateDancesTable(db);
+}
+
+/** Add creator and year_of_creation to dances if missing (for existing DBs). */
+export function migrateDancesTable(db: Database.Database): void {
+  const cols = db.prepare("PRAGMA table_info(dances)").all() as Array<{ name: string }>;
+  const names = new Set(cols.map((c) => c.name));
+  if (!names.has("creator")) {
+    db.exec("ALTER TABLE dances ADD COLUMN creator TEXT");
+  }
+  if (!names.has("year_of_creation")) {
+    db.exec("ALTER TABLE dances ADD COLUMN year_of_creation INTEGER");
+  }
 }

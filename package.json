@@ -10,7 +10,8 @@
     "build:server": "cd server && npm run build",
     "build:client": "cd client && npm run build",
     "start": "cd server && npm run start",
-    "db:init": "cd server && npm run db:init"
+    "db:init": "cd server && npm run db:init",
+    "db:seed-harokdim": "cd server && npm run db:seed-harokdim"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

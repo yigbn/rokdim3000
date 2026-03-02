@@ -90,6 +90,8 @@ export interface Dance {
   id: number;
   name: string;
   type: string;
+  creator: string | null;
+  yearOfCreation: number | null;
   category: string | null;
   difficultyLevel: string | null;
   youtubeLink: string | null;
@@ -99,6 +101,8 @@ export interface Dance {
 export interface DanceInput {
   name: string;
   type: string;
+  creator?: string;
+  yearOfCreation?: number;
   category?: string;
   difficultyLevel?: string;
   youtubeLink?: string;

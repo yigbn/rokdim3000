@@ -6,7 +6,8 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "db:init": "tsx src/db/init.ts"
+    "db:init": "tsx src/db/init.ts",
+    "db:seed-harokdim": "tsx scripts/seedHarokdimDances.ts"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
