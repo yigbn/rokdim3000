@@ -39,6 +39,7 @@ export default function Dances() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<DanceInput>({ name: "", type: "circle" });
   const [typeFilter, setTypeFilter] = useState<string>("");
+  const [page, setPage] = useState(0);
   const [selectedDanceId, setSelectedDanceId] = useState<number | null>(null);
   const [opinionText, setOpinionText] = useState("");
   const [opinionSaving, setOpinionSaving] = useState(false);
@@ -48,7 +49,14 @@ export default function Dances() {
 
   const isAdmin = auth.profile?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
   const filteredList = typeFilter ? list.filter((d) => d.type === typeFilter) : list;
+  const totalPages = Math.max(1, Math.ceil(filteredList.length / 20));
+  const paginatedList = filteredList.slice(page * 20, page * 20 + 20);
   const selectedDance = selectedDanceId ? list.find((d) => d.id === selectedDanceId) : null;
+
+  useEffect(() => setPage(0), [typeFilter]);
+  useEffect(() => {
+    if (page >= totalPages && totalPages > 0) setPage(totalPages - 1);
+  }, [page, totalPages]);
 
   async function load() {
     setLoading(true);
@@ -190,7 +198,7 @@ export default function Dances() {
   }
 
   return (
-    <div className="section container">
+    <div className="section container" style={{ maxWidth: 1100 }}>
       <h1 style={{ marginBottom: "1rem" }}>ריקודים</h1>
       <p style={{ color: "var(--text-muted)", marginBottom: "1.5rem" }}>
         רשימת הריקודים. בהמשך נוסיף סינון ודירוג לפי פרמטרים.
@@ -318,6 +326,50 @@ export default function Dances() {
         </div>
       )}
 
+      {isAdmin && editingId && (
+        <section style={{ marginBottom: "1.5rem", padding: "1.25rem", background: "var(--vision-bg)", borderRadius: 8, border: "1px solid var(--border)" }}>
+          <h2 style={{ margin: "0 0 1rem", fontSize: "1.15rem" }}>עריכת ריקוד</h2>
+          <form onSubmit={(e) => handleUpdate(e, editingId)} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: "0.75rem", alignItems: "end" }}>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>שם</label>
+              <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} required />
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>סוג</label>
+              <select value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))} style={{ padding: "0.5rem", border: "1px solid var(--border)", borderRadius: 6, width: "100%" }}>
+                {DANCE_TYPE_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>יוצר</label>
+              <input value={form.creator ?? ""} onChange={(e) => setForm((f) => ({ ...f, creator: e.target.value || undefined }))} />
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>שנה</label>
+              <input type="number" min={1900} max={2100} value={form.yearOfCreation ?? ""} onChange={(e) => setForm((f) => ({ ...f, yearOfCreation: e.target.value ? parseInt(e.target.value, 10) : undefined }))} placeholder="שנה" />
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>קטגוריה</label>
+              <input value={form.category ?? ""} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value || undefined }))} />
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>קושי</label>
+              <input value={form.difficultyLevel ?? ""} onChange={(e) => setForm((f) => ({ ...f, difficultyLevel: e.target.value || undefined }))} />
+            </div>
+            <div className="form-group" style={{ marginBottom: 0, gridColumn: "1 / -1" }}>
+              <label>קישור יוטיוב</label>
+              <input type="url" value={form.youtubeLink ?? ""} onChange={(e) => setForm((f) => ({ ...f, youtubeLink: e.target.value || undefined }))} style={{ width: "100%", maxWidth: 400 }} />
+            </div>
+            <div style={{ display: "flex", gap: "0.5rem" }}>
+              <button type="submit" className="btn btn-primary">שמור</button>
+              <button type="button" className="btn btn-secondary" onClick={cancelEdit}>ביטול</button>
+            </div>
+          </form>
+        </section>
+      )}
+
       {loading ? (
         <p>טוען...</p>
       ) : (
@@ -333,11 +385,11 @@ export default function Dances() {
                   <th style={{ textAlign: "right", padding: "0.5rem" }}>קטגוריה</th>
                   <th style={{ textAlign: "right", padding: "0.5rem" }}>קושי</th>
                   <th style={{ textAlign: "right", padding: "0.5rem" }}>יוטיוב</th>
-                  {isAdmin && <th style={{ textAlign: "right", padding: "0.5rem" }}>פעולות</th>}
+                  {isAdmin && <th style={{ textAlign: "right", padding: "0.5rem", position: "sticky", right: 0, background: "var(--surface)", minWidth: 140, boxShadow: "-4px 0 8px rgba(0,0,0,0.06)" }}>פעולות</th>}
                 </tr>
               </thead>
               <tbody>
-                {filteredList.map((d) => (
+                {paginatedList.map((d) => (
                   <tr
                     key={d.id}
                     style={{
@@ -348,46 +400,9 @@ export default function Dances() {
                     onClick={() => handleRowClick(d)}
                   >
                     {editingId === d.id ? (
-                      <>
-                        <td colSpan={isAdmin ? 8 : 7} style={{ padding: "0.75rem" }}>
-                          <form onSubmit={(e) => handleUpdate(e, d.id)} style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", alignItems: "flex-end" }}>
-                            <div className="form-group" style={{ marginBottom: 0, minWidth: 120 }}>
-                              <label>שם</label>
-                              <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} required />
-                            </div>
-                            <div className="form-group" style={{ marginBottom: 0, minWidth: 80 }}>
-                              <label>סוג</label>
-                              <select value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))} style={{ padding: "0.5rem", border: "1px solid var(--border)", borderRadius: 6 }}>
-                                {DANCE_TYPE_OPTIONS.map((o) => (
-                                  <option key={o.value} value={o.value}>{o.label}</option>
-                                ))}
-                              </select>
-                            </div>
-                            <div className="form-group" style={{ marginBottom: 0, minWidth: 100 }}>
-                              <label>יוצר</label>
-                              <input value={form.creator ?? ""} onChange={(e) => setForm((f) => ({ ...f, creator: e.target.value || undefined }))} />
-                            </div>
-                            <div className="form-group" style={{ marginBottom: 0, minWidth: 70 }}>
-                              <label>שנה</label>
-                              <input type="number" min={1900} max={2100} value={form.yearOfCreation ?? ""} onChange={(e) => setForm((f) => ({ ...f, yearOfCreation: e.target.value ? parseInt(e.target.value, 10) : undefined }))} placeholder="שנה" />
-                            </div>
-                            <div className="form-group" style={{ marginBottom: 0, minWidth: 100 }}>
-                              <label>קטגוריה</label>
-                              <input value={form.category ?? ""} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value || undefined }))} />
-                            </div>
-                            <div className="form-group" style={{ marginBottom: 0, minWidth: 80 }}>
-                              <label>קושי</label>
-                              <input value={form.difficultyLevel ?? ""} onChange={(e) => setForm((f) => ({ ...f, difficultyLevel: e.target.value || undefined }))} />
-                            </div>
-                            <div className="form-group" style={{ marginBottom: 0, flex: "1 1 200px" }}>
-                              <label>יוטיוב</label>
-                              <input type="url" value={form.youtubeLink ?? ""} onChange={(e) => setForm((f) => ({ ...f, youtubeLink: e.target.value || undefined }))} />
-                            </div>
-                            <button type="submit" className="btn btn-primary">שמור</button>
-                            <button type="button" className="btn btn-secondary" onClick={cancelEdit}>ביטול</button>
-                          </form>
-                        </td>
-                      </>
+                      <td colSpan={isAdmin ? 8 : 7} style={{ padding: "0.5rem", background: "var(--vision-bg)", fontWeight: 500 }}>
+                        עורכים: {form.name} — לחצו "ביטול" או שמרו למטה
+                      </td>
                     ) : (
                       <>
                         <td style={{ padding: "0.5rem" }}>{d.name}</td>
@@ -404,8 +419,8 @@ export default function Dances() {
                           )}
                         </td>
                         {isAdmin && (
-                          <td style={{ padding: "0.5rem" }} onClick={(e) => e.stopPropagation()}>
-                            <div style={{ display: "flex", gap: "0.5rem" }}>
+                          <td style={{ padding: "0.5rem", position: "sticky", right: 0, background: selectedDanceId === d.id ? "var(--vision-bg)" : "var(--surface)", minWidth: 140, boxShadow: "-4px 0 8px rgba(0,0,0,0.06)" }} onClick={(e) => e.stopPropagation()}>
+                            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "nowrap" }}>
                               <button type="button" className="btn btn-secondary" style={{ padding: "0.35rem 0.75rem", fontSize: "0.9rem" }} onClick={() => startEdit(d)}>
                                 עריכה
                               </button>
@@ -423,6 +438,30 @@ export default function Dances() {
             </table>
             {filteredList.length === 0 && <p style={{ color: "var(--text-muted)", marginTop: "1rem" }}>אין ריקודים בסינון זה.</p>}
           </div>
+
+          {filteredList.length > 0 && totalPages > 1 && (
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginTop: "1rem", flexWrap: "wrap" }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                disabled={page === 0}
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+              >
+                הקודם
+              </button>
+              <span style={{ color: "var(--text-muted)" }}>
+                עמוד {page + 1} מתוך {totalPages} ({filteredList.length} ריקודים)
+              </span>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                disabled={page >= totalPages - 1}
+                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              >
+                הבא
+              </button>
+            </div>
+          )}
 
           {auth.token && selectedDance && (
             <section style={{ marginTop: "2rem", padding: "1.25rem", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8 }}>
