@@ -145,4 +145,20 @@ router.put("/:id", requireAuth, requireAdmin, (req, res) => {
   res.json(toDance(row));
 });
 
+router.delete("/:id", requireAuth, requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (Number.isNaN(id)) {
+    res.status(400).json({ error: "מזהה לא תקף" });
+    return;
+  }
+  const db = getDb();
+  const result = db.prepare("DELETE FROM dances WHERE id = ?").run(id);
+  db.close();
+  if (result.changes === 0) {
+    res.status(404).json({ error: "ריקוד לא נמצא" });
+    return;
+  }
+  res.status(204).send();
+});
+
 export default router;

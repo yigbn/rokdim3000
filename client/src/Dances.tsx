@@ -115,6 +115,21 @@ export default function Dances() {
     }
   }
 
+  async function handleDelete(d: Dance) {
+    if (!confirm(`למחוק את הריקוד "${d.name}"?`)) return;
+    setError("");
+    setMessage("");
+    try {
+      await dancesApi.delete(d.id);
+      setMessage("הריקוד נמחק");
+      if (selectedDanceId === d.id) setSelectedDanceId(null);
+      if (editingId === d.id) setEditingId(null);
+      load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "שגיאה במחיקה");
+    }
+  }
+
   function startEdit(d: Dance) {
     setEditingId(d.id);
     setForm({
@@ -390,9 +405,14 @@ export default function Dances() {
                         </td>
                         {isAdmin && (
                           <td style={{ padding: "0.5rem" }} onClick={(e) => e.stopPropagation()}>
-                            <button type="button" className="btn btn-secondary" style={{ padding: "0.35rem 0.75rem", fontSize: "0.9rem" }} onClick={() => startEdit(d)}>
-                              עריכה
-                            </button>
+                            <div style={{ display: "flex", gap: "0.5rem" }}>
+                              <button type="button" className="btn btn-secondary" style={{ padding: "0.35rem 0.75rem", fontSize: "0.9rem" }} onClick={() => startEdit(d)}>
+                                עריכה
+                              </button>
+                              <button type="button" className="btn btn-secondary" style={{ padding: "0.35rem 0.75rem", fontSize: "0.9rem", color: "var(--error, #c00)" }} onClick={() => handleDelete(d)}>
+                                מחיקה
+                              </button>
+                            </div>
                           </td>
                         )}
                       </>

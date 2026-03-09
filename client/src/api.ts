@@ -114,6 +114,8 @@ export const dances = {
     request<Dance>("/dances", { method: "POST", body: data }),
   update: (id: number, data: Partial<DanceInput>) =>
     request<Dance>(`/dances/${id}`, { method: "PUT", body: data }),
+  delete: (id: number) =>
+    request<void>(`/dances/${id}`, { method: "DELETE" }),
 };
 
 export const danceOpinions = {
