@@ -14,8 +14,8 @@ const ADMIN_EMAIL = "yben99@gmail.com";
 const DANCE_TYPE_OPTIONS: { value: string; label: string }[] = [
   { value: "circle", label: "מעגלים" },
   { value: "couple", label: "זוגות" },
-  { value: "circles_btb", label: "מעגלים גב-אל-גב" },
-  { value: "couple_btb", label: "זוגות גב-אל-גב" },
+  { value: "circles_btb", label: "מעגלים נוספים" },
+  { value: "couple_btb", label: "זוגות נוספים" },
 ];
 
 const SLIDER_LABELS: Record<number, string> = {
@@ -535,10 +535,16 @@ export default function Dances() {
                     type="range"
                     min={1}
                     max={5}
+                    step={1}
+                    list="dance-rating-ticks"
                     value={ratingKnowledge}
                     onChange={(e) => { setRatingKnowledge(parseInt(e.target.value, 10)); scheduleRatingSave(); }}
                     style={{ width: "100%", marginBottom: "0.25rem" }}
                   />
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.82rem", color: "var(--text-muted)", direction: "ltr", marginBottom: "0.2rem" }}>
+                    <span>1 (הרבה מאוד)</span>
+                    <span>5 (מעט מאוד)</span>
+                  </div>
                   <span style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>{SLIDER_LABELS[ratingKnowledge]}</span>
                 </div>
                 <div>
@@ -549,13 +555,26 @@ export default function Dances() {
                     type="range"
                     min={1}
                     max={5}
+                    step={1}
+                    list="dance-rating-ticks"
                     value={ratingEnjoyment}
                     onChange={(e) => { setRatingEnjoyment(parseInt(e.target.value, 10)); scheduleRatingSave(); }}
                     style={{ width: "100%", marginBottom: "0.25rem" }}
                   />
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.82rem", color: "var(--text-muted)", direction: "ltr", marginBottom: "0.2rem" }}>
+                    <span>1 (הרבה מאוד)</span>
+                    <span>5 (מעט מאוד)</span>
+                  </div>
                   <span style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>{SLIDER_LABELS[ratingEnjoyment]}</span>
                 </div>
               </div>
+              <datalist id="dance-rating-ticks">
+                <option value="1" />
+                <option value="2" />
+                <option value="3" />
+                <option value="4" />
+                <option value="5" />
+              </datalist>
               {ratingSaving && <p style={{ marginTop: "0.5rem", fontSize: "0.9rem", color: "var(--text-muted)" }}>שומר...</p>}
             </section>
           )}

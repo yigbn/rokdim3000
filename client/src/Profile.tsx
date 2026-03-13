@@ -3,12 +3,68 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "./auth-context";
 import { users, uploadImage, imageUrl } from "./api";
 
+const PROFILE_FREE_TEXT_SECTIONS = {
+  location: "מיקום, איפה ומתי מעוניינים לרקוד",
+  experience: "נסיון ומה רוקדים ויודעים",
+  feedback: "דעתכם על הרעיון והצעות",
+} as const;
+
+function buildFreeText(payload: {
+  locationText: string;
+  experienceText: string;
+  feedbackText: string;
+}): string {
+  const { locationText, experienceText, feedbackText } = payload;
+  return [
+    `${PROFILE_FREE_TEXT_SECTIONS.location}:\n${locationText.trim()}`,
+    `${PROFILE_FREE_TEXT_SECTIONS.experience}:\n${experienceText.trim()}`,
+    `${PROFILE_FREE_TEXT_SECTIONS.feedback}:\n${feedbackText.trim()}`,
+  ].join("\n\n");
+}
+
+function parseFreeText(source: string): {
+  locationText: string;
+  experienceText: string;
+  feedbackText: string;
+} {
+  const locationMatch = source.match(
+    new RegExp(
+      `${PROFILE_FREE_TEXT_SECTIONS.location}:\\s*([\\s\\S]*?)(?=\\n\\n${PROFILE_FREE_TEXT_SECTIONS.experience}:|$)`,
+    ),
+  );
+  const experienceMatch = source.match(
+    new RegExp(
+      `${PROFILE_FREE_TEXT_SECTIONS.experience}:\\s*([\\s\\S]*?)(?=\\n\\n${PROFILE_FREE_TEXT_SECTIONS.feedback}:|$)`,
+    ),
+  );
+  const feedbackMatch = source.match(
+    new RegExp(`${PROFILE_FREE_TEXT_SECTIONS.feedback}:\\s*([\\s\\S]*)$`),
+  );
+
+  if (locationMatch || experienceMatch || feedbackMatch) {
+    return {
+      locationText: locationMatch?.[1]?.trim() ?? "",
+      experienceText: experienceMatch?.[1]?.trim() ?? "",
+      feedbackText: feedbackMatch?.[1]?.trim() ?? "",
+    };
+  }
+
+  // Backward compatibility for existing one-field profiles.
+  return {
+    locationText: source.trim(),
+    experienceText: "",
+    feedbackText: "",
+  };
+}
+
 export default function Profile() {
   const { auth, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [phone, setPhone] = useState("");
-  const [freeText, setFreeText] = useState("");
+  const [locationText, setLocationText] = useState("");
+  const [experienceText, setExperienceText] = useState("");
+  const [feedbackText, setFeedbackText] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState("");
@@ -21,7 +77,10 @@ export default function Profile() {
     }
     if (auth.profile) {
       setPhone(auth.profile.phone ?? "");
-      setFreeText(auth.profile.freeText ?? "");
+      const parsed = parseFreeText(auth.profile.freeText ?? "");
+      setLocationText(parsed.locationText);
+      setExperienceText(parsed.experienceText);
+      setFeedbackText(parsed.feedbackText);
     }
   }, [auth.loading, auth.token, auth.profile, navigate]);
 
@@ -31,7 +90,10 @@ export default function Profile() {
     setMessage("");
     setSaving(true);
     try {
-      await users.updateMe({ phone, freeText });
+      await users.updateMe({
+        phone,
+        freeText: buildFreeText({ locationText, experienceText, feedbackText }),
+      });
       setMessage("הפרופיל עודכן");
     } catch (err) {
       setError(err instanceof Error ? err.message : "שגיאה בשמירה");
@@ -128,15 +190,38 @@ export default function Profile() {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="profile-freetext">
-            טקסט חופשי — ניסיון, מיקום, איפה ומתי מעוניינים לרקוד, מה אתם יודעים, דעתכם על הרעיון
-          </label>
-          <textarea
-            id="profile-freetext"
-            value={freeText}
-            onChange={(e) => setFreeText(e.target.value)}
-            placeholder="כתבו כאן כל מה שרלוונטי לריקודי עם..."
-          />
+          <p style={{ color: "var(--text-muted)", marginBottom: "0.5rem" }}>
+            בכל השאלות ניתן לענות בטקסט חופשי.
+          </p>
+          <div style={{ display: "grid", gap: "0.9rem" }}>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label htmlFor="profile-location-text">{PROFILE_FREE_TEXT_SECTIONS.location}</label>
+              <textarea
+                id="profile-location-text"
+                value={locationText}
+                onChange={(e) => setLocationText(e.target.value)}
+                placeholder="עיר/אזור, ימים ושעות מועדפים..."
+              />
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label htmlFor="profile-experience-text">{PROFILE_FREE_TEXT_SECTIONS.experience}</label>
+              <textarea
+                id="profile-experience-text"
+                value={experienceText}
+                onChange={(e) => setExperienceText(e.target.value)}
+                placeholder="רמת ניסיון, סגנונות וריקודים שאתם מכירים..."
+              />
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label htmlFor="profile-feedback-text">{PROFILE_FREE_TEXT_SECTIONS.feedback}</label>
+              <textarea
+                id="profile-feedback-text"
+                value={feedbackText}
+                onChange={(e) => setFeedbackText(e.target.value)}
+                placeholder="רעיונות, הערות והצעות לשיפור..."
+              />
+            </div>
+          </div>
         </div>
         {error && <p className="error-msg">{error}</p>}
         {message && <p className="success-msg">{message}</p>}
