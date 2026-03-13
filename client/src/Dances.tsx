@@ -39,7 +39,10 @@ export default function Dances() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<DanceInput>({ name: "", type: "circle" });
   const [typeFilter, setTypeFilter] = useState<string>("");
+  const [nameFilter, setNameFilter] = useState("");
+  const [creatorFilter, setCreatorFilter] = useState("");
   const [page, setPage] = useState(0);
+  const [pageInput, setPageInput] = useState("");
   const [selectedDanceId, setSelectedDanceId] = useState<number | null>(null);
   const [opinionText, setOpinionText] = useState("");
   const [opinionSaving, setOpinionSaving] = useState(false);
@@ -48,12 +51,18 @@ export default function Dances() {
   const [ratingSaving, setRatingSaving] = useState(false);
 
   const isAdmin = auth.profile?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
-  const filteredList = typeFilter ? list.filter((d) => d.type === typeFilter) : list;
-  const totalPages = Math.max(1, Math.ceil(filteredList.length / 20));
-  const paginatedList = filteredList.slice(page * 20, page * 20 + 20);
+  const filteredList = list.filter((d) => {
+    if (typeFilter && d.type !== typeFilter) return false;
+    if (nameFilter && !d.name.startsWith(nameFilter)) return false;
+    if (creatorFilter && !(d.creator ?? "").startsWith(creatorFilter)) return false;
+    return true;
+  });
+  const PER_PAGE = 10;
+  const totalPages = Math.max(1, Math.ceil(filteredList.length / PER_PAGE));
+  const paginatedList = filteredList.slice(page * PER_PAGE, page * PER_PAGE + PER_PAGE);
   const selectedDance = selectedDanceId ? list.find((d) => d.id === selectedDanceId) : null;
 
-  useEffect(() => setPage(0), [typeFilter]);
+  useEffect(() => setPage(0), [typeFilter, nameFilter, creatorFilter]);
   useEffect(() => {
     if (page >= totalPages && totalPages > 0) setPage(totalPages - 1);
   }, [page, totalPages]);
@@ -197,6 +206,14 @@ export default function Dances() {
     if (auth.token) setSelectedDanceId((prev) => (prev === d.id ? null : d.id));
   }
 
+  function goToPage() {
+    const n = parseInt(pageInput, 10);
+    if (!Number.isNaN(n) && n >= 1 && n <= totalPages) {
+      setPage(n - 1);
+      setPageInput("");
+    }
+  }
+
   return (
     <div className="section container" style={{ maxWidth: 1100 }}>
       <h1 style={{ marginBottom: "1rem" }}>ריקודים</h1>
@@ -311,18 +328,40 @@ export default function Dances() {
       )}
 
       {!loading && list.length > 0 && (
-        <div style={{ marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-          <label style={{ fontWeight: 500 }}>סינון לפי סוג:</label>
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            style={{ padding: "0.4rem 0.75rem", border: "1px solid var(--border)", borderRadius: 6, minWidth: 180 }}
-          >
-            <option value="">הכל</option>
-            {DANCE_TYPE_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
-            ))}
-          </select>
+        <div style={{ marginBottom: "1rem", display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <label style={{ fontWeight: 500 }}>סינון לפי סוג:</label>
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              style={{ padding: "0.4rem 0.75rem", border: "1px solid var(--border)", borderRadius: 6, minWidth: 140 }}
+            >
+              <option value="">הכל</option>
+              {DANCE_TYPE_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <label style={{ fontWeight: 500 }}>שם (תחילת מחרוזת):</label>
+            <input
+              type="text"
+              value={nameFilter}
+              onChange={(e) => setNameFilter(e.target.value)}
+              placeholder="התחלה של שם..."
+              style={{ padding: "0.4rem 0.75rem", border: "1px solid var(--border)", borderRadius: 6, minWidth: 120 }}
+            />
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <label style={{ fontWeight: 500 }}>יוצר (תחילת מחרוזת):</label>
+            <input
+              type="text"
+              value={creatorFilter}
+              onChange={(e) => setCreatorFilter(e.target.value)}
+              placeholder="התחלה של יוצר..."
+              style={{ padding: "0.4rem 0.75rem", border: "1px solid var(--border)", borderRadius: 6, minWidth: 120 }}
+            />
+          </div>
         </div>
       )}
 
@@ -439,7 +478,7 @@ export default function Dances() {
             {filteredList.length === 0 && <p style={{ color: "var(--text-muted)", marginTop: "1rem" }}>אין ריקודים בסינון זה.</p>}
           </div>
 
-          {filteredList.length > 0 && totalPages > 1 && (
+          {filteredList.length > 0 && (
             <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginTop: "1rem", flexWrap: "wrap" }}>
               <button
                 type="button"
@@ -460,6 +499,24 @@ export default function Dances() {
               >
                 הבא
               </button>
+              {totalPages > 1 && (
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <label style={{ fontWeight: 500, fontSize: "0.9rem" }}>עבור לעמוד:</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={totalPages}
+                    value={pageInput}
+                    onChange={(e) => setPageInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), goToPage())}
+                    placeholder={String(page + 1)}
+                    style={{ width: 56, padding: "0.35rem 0.5rem", border: "1px solid var(--border)", borderRadius: 6, textAlign: "center" }}
+                  />
+                  <button type="button" className="btn btn-secondary" style={{ padding: "0.35rem 0.75rem", fontSize: "0.9rem" }} onClick={goToPage}>
+                    עבור
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
