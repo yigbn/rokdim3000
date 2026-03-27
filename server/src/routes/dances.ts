@@ -5,6 +5,13 @@ import { requireAdmin } from "../middleware/admin.js";
 
 const router = Router();
 
+function getSingleParam(value: string | string[] | undefined): string | undefined {
+  if (Array.isArray(value)) {
+    return value[0];
+  }
+  return value;
+}
+
 function toDance(r: {
   id: number;
   name: string;
@@ -85,7 +92,7 @@ router.post("/", requireAuth, requireAdmin, (req, res) => {
 });
 
 router.put("/:id", requireAuth, requireAdmin, (req, res) => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(getSingleParam(req.params.id) ?? "", 10);
   if (Number.isNaN(id)) {
     res.status(400).json({ error: "מזהה לא תקף" });
     return;
@@ -146,7 +153,7 @@ router.put("/:id", requireAuth, requireAdmin, (req, res) => {
 });
 
 router.delete("/:id", requireAuth, requireAdmin, (req, res) => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(getSingleParam(req.params.id) ?? "", 10);
   if (Number.isNaN(id)) {
     res.status(400).json({ error: "מזהה לא תקף" });
     return;

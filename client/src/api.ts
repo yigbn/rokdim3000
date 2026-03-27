@@ -6,20 +6,25 @@ function getToken(): string | null {
 
 export async function request<T>(
   path: string,
-  options: RequestInit & { body?: object } = {}
+  options: Omit<RequestInit, "body"> & { body?: unknown } = {}
 ): Promise<T> {
   const { body, ...rest } = options;
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...((rest.headers as Record<string, string>) || {}),
-  };
+  const headers = new Headers(rest.headers);
+  if (body !== undefined && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
   const token = getToken();
-  if (token) headers["Authorization"] = `Bearer ${token}`;
-  const res = await fetch(API_BASE + path, {
+  if (token && !headers.has("Authorization")) headers.set("Authorization", `Bearer ${token}`);
+
+  const requestInit: RequestInit = {
     ...rest,
     headers,
-    body: body ? JSON.stringify(body) : rest.body,
-  });
+  };
+  if (body !== undefined) {
+    requestInit.body = JSON.stringify(body);
+  }
+
+  const res = await fetch(API_BASE + path, requestInit);
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error((data as { error?: string }).error || res.statusText);
   return data as T;
