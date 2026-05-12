@@ -5,6 +5,15 @@ import { users, uploadImage, imageUrl } from "./api";
 
 const PROFILE_FREE_TEXT_SECTIONS = {
   location: "מיקום, איפה ומתי מעוניינים לרקוד",
+  experience:
+    "נסיון ומה רוקדים ויודעיםת ואצל איזה מרקיד/ים\u00a0\u00a0\u00a0\u00a0   \u00a0\u00a0\u00a0\u00a0",
+  feedback:
+    "דעתכם על הרעיון והצעות, ואילו ריקודים הייתם מוסיפים / משנים לסטנדרט",
+} as const;
+
+/** Saved profiles before May 2026 used these section titles in `freeText`. */
+const LEGACY_PROFILE_FREE_TEXT_SECTIONS = {
+  location: PROFILE_FREE_TEXT_SECTIONS.location,
   experience: "נסיון ומה רוקדים ויודעים",
   feedback: "דעתכם על הרעיון והצעות",
 } as const;
@@ -22,23 +31,30 @@ function buildFreeText(payload: {
   ].join("\n\n");
 }
 
-function parseFreeText(source: string): {
+function parseFreeTextWithSections(
+  source: string,
+  sections: {
+    location: string;
+    experience: string;
+    feedback: string;
+  },
+): {
   locationText: string;
   experienceText: string;
   feedbackText: string;
 } {
   const locationMatch = source.match(
     new RegExp(
-      `${PROFILE_FREE_TEXT_SECTIONS.location}:\\s*([\\s\\S]*?)(?=\\n\\n${PROFILE_FREE_TEXT_SECTIONS.experience}:|$)`,
+      `${sections.location}:\\s*([\\s\\S]*?)(?=\\n\\n${sections.experience}:|$)`,
     ),
   );
   const experienceMatch = source.match(
     new RegExp(
-      `${PROFILE_FREE_TEXT_SECTIONS.experience}:\\s*([\\s\\S]*?)(?=\\n\\n${PROFILE_FREE_TEXT_SECTIONS.feedback}:|$)`,
+      `${sections.experience}:\\s*([\\s\\S]*?)(?=\\n\\n${sections.feedback}:|$)`,
     ),
   );
   const feedbackMatch = source.match(
-    new RegExp(`${PROFILE_FREE_TEXT_SECTIONS.feedback}:\\s*([\\s\\S]*)$`),
+    new RegExp(`${sections.feedback}:\\s*([\\s\\S]*)$`),
   );
 
   if (locationMatch || experienceMatch || feedbackMatch) {
@@ -47,6 +63,36 @@ function parseFreeText(source: string): {
       experienceText: experienceMatch?.[1]?.trim() ?? "",
       feedbackText: feedbackMatch?.[1]?.trim() ?? "",
     };
+  }
+
+  return {
+    locationText: "",
+    experienceText: "",
+    feedbackText: "",
+  };
+}
+
+function parseFreeText(source: string): {
+  locationText: string;
+  experienceText: string;
+  feedbackText: string;
+} {
+  const usesLegacyExperienceHeader =
+    source.includes("\n\nנסיון ומה רוקדים ויודעים:\n") &&
+    !source.includes(
+      "\n\nנסיון ומה רוקדים ויודעיםת ואצל איזה מרקיד/ים\u00a0\u00a0\u00a0\u00a0   \u00a0\u00a0\u00a0\u00a0:\n",
+    );
+  const sections = usesLegacyExperienceHeader
+    ? LEGACY_PROFILE_FREE_TEXT_SECTIONS
+    : PROFILE_FREE_TEXT_SECTIONS;
+
+  const parsed = parseFreeTextWithSections(source, sections);
+  if (
+    parsed.locationText ||
+    parsed.experienceText ||
+    parsed.feedbackText
+  ) {
+    return parsed;
   }
 
   // Backward compatibility for existing one-field profiles.
