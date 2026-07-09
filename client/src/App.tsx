@@ -7,6 +7,7 @@ import ForgotPassword from "./ForgotPassword";
 import ResetPassword from "./ResetPassword";
 import Profile from "./Profile";
 import Dances from "./Dances";
+import Instructors from "./Instructors";
 
 function Nav() {
   const { auth, logout } = useAuth();
@@ -18,6 +19,7 @@ function Nav() {
         </Link>
         <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
           <Link to="/dances">ריקודים</Link>
+          <Link to="/instructors">מרקידים</Link>
           {auth.token ? (
             <>
               <Link to="/profile">הפרופיל שלי</Link>
@@ -51,6 +53,7 @@ function AppRoutes() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/dances" element={<Dances />} />
+        <Route path="/instructors" element={<Instructors />} />
       </Routes>
     </>
   );

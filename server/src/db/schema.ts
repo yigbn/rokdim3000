@@ -52,8 +52,19 @@ export function initDb(db: Database.Database): void {
       PRIMARY KEY (user_id, dance_id)
     );
 
+    CREATE TABLE IF NOT EXISTS instructor_submissions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT UNIQUE NOT NULL,
+      circle_dances TEXT NOT NULL DEFAULT '',
+      couple_dances TEXT NOT NULL DEFAULT '',
+      notes TEXT NOT NULL DEFAULT '',
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     CREATE INDEX IF NOT EXISTS idx_users_reset_token ON users(reset_token);
+    CREATE INDEX IF NOT EXISTS idx_instructor_submissions_email ON instructor_submissions(email);
   `);
   migrateDancesTable(db);
 }

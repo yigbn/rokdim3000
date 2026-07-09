@@ -150,3 +150,37 @@ export const danceRatings = {
       { method: "PUT", body: { knowledge, enjoyment } }
     ),
 };
+
+export interface InstructorSubmission {
+  circleDances: string;
+  coupleDances: string;
+  notes: string;
+  updatedAt: number | null;
+}
+
+function getInstructorToken(): string | null {
+  return localStorage.getItem("rokdim300_instructor_token");
+}
+
+function instructorHeaders(): HeadersInit {
+  const token = getInstructorToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+export const instructors = {
+  login: (email: string, password: string) =>
+    request<{ token: string }>("/instructors/login", {
+      method: "POST",
+      body: { email, password },
+    }),
+  getSubmission: () =>
+    request<InstructorSubmission>("/instructors/submission", {
+      headers: instructorHeaders(),
+    }),
+  saveSubmission: (data: Omit<InstructorSubmission, "updatedAt">) =>
+    request<InstructorSubmission>("/instructors/submission", {
+      method: "PUT",
+      headers: instructorHeaders(),
+      body: data,
+    }),
+};

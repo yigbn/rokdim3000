@@ -11,6 +11,7 @@ import uploadRoutes from "./routes/upload.js";
 import danceRoutes from "./routes/dances.js";
 import danceOpinionsRoutes from "./routes/danceOpinions.js";
 import danceRatingsRoutes from "./routes/danceRatings.js";
+import instructorRoutes from "./routes/instructors.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const uploadsDir = path.join(__dirname, "../uploads");
@@ -33,6 +34,7 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/dances", danceRoutes);
 app.use("/api/dance-opinions", danceOpinionsRoutes);
 app.use("/api/dance-ratings", danceRatingsRoutes);
+app.use("/api/instructors", instructorRoutes);
 
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true });
