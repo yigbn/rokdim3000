@@ -5,6 +5,8 @@ import {
   dances as dancesApi,
   danceOpinions,
   danceRatings,
+  instructors as instructorsApi,
+  isInstructorLoggedIn,
   type Dance,
   type DanceInput,
 } from "./api";
@@ -51,6 +53,9 @@ export default function Dances() {
   const [ratingSaving, setRatingSaving] = useState(false);
 
   const isAdmin = auth.profile?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+  const instructorLoggedIn = isInstructorLoggedIn();
+  const canRate = Boolean(auth.token || instructorLoggedIn);
+  const useInstructorRatings = instructorLoggedIn;
   const filteredList = list.filter((d) => {
     if (typeFilter && d.type !== typeFilter) return false;
     if (nameFilter && !d.name.startsWith(nameFilter)) return false;
@@ -90,17 +95,20 @@ export default function Dances() {
     danceOpinions.get().then((r) => setOpinionText(r.opinionText)).catch(() => {});
   }, [auth.token, isAdmin]);
 
-  // Load rating when selection changes (logged-in users)
+  // Load rating when selection changes (logged-in users or instructors)
   useEffect(() => {
-    if (!auth.token || !selectedDanceId) return;
-    danceRatings.get(selectedDanceId).then((r) => {
+    if (!canRate || !selectedDanceId) return;
+    const loadRating = useInstructorRatings
+      ? instructorsApi.getRating(selectedDanceId)
+      : danceRatings.get(selectedDanceId);
+    loadRating.then((r) => {
       setRatingKnowledge(r.knowledge ?? 3);
       setRatingEnjoyment(r.enjoyment ?? 3);
     }).catch(() => {
       setRatingKnowledge(3);
       setRatingEnjoyment(3);
     });
-  }, [auth.token, selectedDanceId]);
+  }, [canRate, useInstructorRatings, selectedDanceId]);
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -183,7 +191,7 @@ export default function Dances() {
   ratingValuesRef.current = { knowledge: ratingKnowledge, enjoyment: ratingEnjoyment, danceId: selectedDanceId ?? 0 };
 
   function scheduleRatingSave() {
-    if (!auth.token || !selectedDanceId) return;
+    if (!canRate || !selectedDanceId) return;
     if (saveRatingTimeoutRef.current) clearTimeout(saveRatingTimeoutRef.current);
     saveRatingTimeoutRef.current = setTimeout(async () => {
       saveRatingTimeoutRef.current = null;
@@ -191,7 +199,11 @@ export default function Dances() {
       if (!danceId) return;
       setRatingSaving(true);
       try {
-        await danceRatings.set(danceId, knowledge, enjoyment);
+        if (useInstructorRatings) {
+          await instructorsApi.setRating(danceId, knowledge, enjoyment);
+        } else {
+          await danceRatings.set(danceId, knowledge, enjoyment);
+        }
         setMessage("הדירוג נשמר");
       } catch (e) {
         setError(e instanceof Error ? e.message : "שגיאה בשמירת הדירוג");
@@ -203,7 +215,7 @@ export default function Dances() {
 
   function handleRowClick(d: Dance) {
     if (editingId === d.id) return;
-    if (auth.token) setSelectedDanceId((prev) => (prev === d.id ? null : d.id));
+    if (canRate) setSelectedDanceId((prev) => (prev === d.id ? null : d.id));
   }
 
   function goToPage() {
@@ -321,9 +333,16 @@ export default function Dances() {
       {message && <p className="success-msg">{message}</p>}
 
       {/* Type filter */}
-      {!loading && list.length > 0 && auth.token && (
+      {!loading && list.length > 0 && canRate && (
         <p style={{ marginBottom: "0.75rem", fontSize: "0.95rem", color: "var(--text-muted)" }}>
           לחצו על שורה כדי לבחור ריקוד ולדרג אותו (כמה אתם יודעים / כמה אוהבים לרקוד) — הדירוג יופיע מתחת לטבלה.
+          {useInstructorRatings && !auth.token && " כך יחוו גם הרוקדים את הדף."}
+        </p>
+      )}
+
+      {!loading && list.length > 0 && !canRate && (
+        <p style={{ marginBottom: "0.75rem", fontSize: "0.95rem", color: "var(--text-muted)" }}>
+          כדי לבחור ריקוד ולדרג — התחברו כרוקדים או כמרקידים (מרקידים: <Link to="/instructors">כניסת מרקידים</Link>).
         </p>
       )}
 
@@ -434,7 +453,7 @@ export default function Dances() {
                     style={{
                       borderBottom: "1px solid var(--border)",
                       background: selectedDanceId === d.id ? "var(--vision-bg)" : undefined,
-                      cursor: auth.token && editingId !== d.id ? "pointer" : undefined,
+                      cursor: canRate && editingId !== d.id ? "pointer" : undefined,
                     }}
                     onClick={() => handleRowClick(d)}
                   >
@@ -520,7 +539,7 @@ export default function Dances() {
             </div>
           )}
 
-          {auth.token && selectedDance && (
+          {canRate && selectedDance && (
             <section style={{ marginTop: "2rem", padding: "1.25rem", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8 }}>
               <h3 style={{ margin: "0 0 1rem", fontSize: "1.1rem" }}>דירוג: {selectedDance.name}</h3>
               <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginBottom: "1rem" }}>

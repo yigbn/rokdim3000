@@ -126,4 +126,50 @@ router.put("/submission", requireInstructor, (req: InstructorRequest, res) => {
   });
 });
 
+router.get("/ratings/:danceId", requireInstructor, (req: InstructorRequest, res) => {
+  const danceId = parseInt(String(req.params.danceId), 10);
+  if (Number.isNaN(danceId)) {
+    res.status(400).json({ error: "מזהה ריקוד לא תקף" });
+    return;
+  }
+
+  const db = getDb();
+  const row = db
+    .prepare(
+      "SELECT knowledge, enjoyment, updated_at FROM instructor_dance_ratings WHERE instructor_email = ? AND dance_id = ?",
+    )
+    .get(req.instructorEmail, danceId) as
+    | { knowledge: number; enjoyment: number; updated_at: number }
+    | undefined;
+  db.close();
+
+  if (!row) {
+    res.json({ knowledge: null, enjoyment: null, updatedAt: null });
+    return;
+  }
+
+  res.json({ knowledge: row.knowledge, enjoyment: row.enjoyment, updatedAt: row.updated_at });
+});
+
+router.put("/ratings/:danceId", requireInstructor, (req: InstructorRequest, res) => {
+  const danceId = parseInt(String(req.params.danceId), 10);
+  if (Number.isNaN(danceId)) {
+    res.status(400).json({ error: "מזהה ריקוד לא תקף" });
+    return;
+  }
+
+  const { knowledge, enjoyment } = req.body as { knowledge?: number; enjoyment?: number };
+  const k = typeof knowledge === "number" && knowledge >= 1 && knowledge <= 5 ? knowledge : 3;
+  const e = typeof enjoyment === "number" && enjoyment >= 1 && enjoyment <= 5 ? enjoyment : 3;
+
+  const db = getDb();
+  const now = Date.now();
+  db.prepare(
+    "INSERT INTO instructor_dance_ratings (instructor_email, dance_id, knowledge, enjoyment, updated_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(instructor_email, dance_id) DO UPDATE SET knowledge = excluded.knowledge, enjoyment = excluded.enjoyment, updated_at = excluded.updated_at",
+  ).run(req.instructorEmail, danceId, k, e, now);
+  db.close();
+
+  res.json({ danceId, knowledge: k, enjoyment: e, updatedAt: now });
+});
+
 export default router;

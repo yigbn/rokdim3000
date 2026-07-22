@@ -162,6 +162,10 @@ function getInstructorToken(): string | null {
   return localStorage.getItem("rokdim300_instructor_token");
 }
 
+export function isInstructorLoggedIn(): boolean {
+  return Boolean(getInstructorToken());
+}
+
 function instructorHeaders(): HeadersInit {
   const token = getInstructorToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
@@ -183,4 +187,14 @@ export const instructors = {
       headers: instructorHeaders(),
       body: data,
     }),
+  getRating: (danceId: number) =>
+    request<{ knowledge: number | null; enjoyment: number | null; updatedAt: number | null }>(
+      `/instructors/ratings/${danceId}`,
+      { headers: instructorHeaders() },
+    ),
+  setRating: (danceId: number, knowledge: number, enjoyment: number) =>
+    request<{ danceId: number; knowledge: number; enjoyment: number; updatedAt: number }>(
+      `/instructors/ratings/${danceId}`,
+      { method: "PUT", headers: instructorHeaders(), body: { knowledge, enjoyment } },
+    ),
 };

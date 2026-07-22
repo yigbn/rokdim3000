@@ -62,6 +62,15 @@ export function initDb(db: Database.Database): void {
       updated_at INTEGER NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS instructor_dance_ratings (
+      instructor_email TEXT NOT NULL,
+      dance_id INTEGER NOT NULL REFERENCES dances(id) ON DELETE CASCADE,
+      knowledge INTEGER NOT NULL CHECK(knowledge >= 1 AND knowledge <= 5),
+      enjoyment INTEGER NOT NULL CHECK(enjoyment >= 1 AND enjoyment <= 5),
+      updated_at INTEGER NOT NULL,
+      PRIMARY KEY (instructor_email, dance_id)
+    );
+
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     CREATE INDEX IF NOT EXISTS idx_users_reset_token ON users(reset_token);
     CREATE INDEX IF NOT EXISTS idx_instructor_submissions_email ON instructor_submissions(email);
