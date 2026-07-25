@@ -1,0 +1,537 @@
+/*
+ * Folk Tapestry Design System for Rokdim 3000
+ * Inspired by Israeli folk art, traditional embroidery, and community dance
+ */
+
+:root {
+  /* Enhanced Color Palette - Folk Art Inspired */
+  --bg: #faf7f2;
+  --bg-pattern: #f5efe6;
+  --surface: #ffffff;
+  --surface-elevated: #fffef8;
+
+  /* Text colors */
+  --text: #2d2416;
+  --text-muted: #6b5d4f;
+  --text-light: #8a7b6d;
+
+  /* Primary palette - Warm terracotta */
+  --accent: #d4623e;
+  --accent-light: #e8956f;
+  --accent-dark: #a8421f;
+  --accent-glow: rgba(212, 98, 62, 0.15);
+
+  /* Folk art colors */
+  --folk-red: #c73e3a;
+  --folk-blue: #2b5f75;
+  --folk-green: #3d7350;
+  --folk-gold: #d4a047;
+  --folk-purple: #6b4e71;
+
+  /* Semantic colors */
+  --success: #3d7350;
+  --success-bg: #e8f5e9;
+  --success-glow: rgba(61, 115, 80, 0.12);
+
+  --problem: #8b2f2a;
+  --problem-bg: #ffeaea;
+  --problem-glow: rgba(139, 47, 42, 0.12);
+
+  --vision: #2b5f75;
+  --vision-bg: #e3f2f7;
+  --vision-glow: rgba(43, 95, 117, 0.12);
+
+  --step: #6b5d4f;
+  --step-bg: #f7f3ed;
+  --step-glow: rgba(107, 93, 79, 0.12);
+
+  /* Borders and shadows */
+  --border: #e5ddd0;
+  --border-dark: #d4c7b5;
+  --shadow-sm: 0 1px 3px rgba(45, 36, 22, 0.08), 0 1px 2px rgba(45, 36, 22, 0.06);
+  --shadow-md: 0 4px 6px rgba(45, 36, 22, 0.08), 0 2px 4px rgba(45, 36, 22, 0.06);
+  --shadow-lg: 0 10px 15px rgba(45, 36, 22, 0.1), 0 4px 6px rgba(45, 36, 22, 0.05);
+  --shadow-glow: 0 0 20px var(--accent-glow);
+
+  /* Typography */
+  --font-primary: "Rubik", "Heebo", sans-serif;
+  --font-display: "Varela Round", "Rubik", sans-serif;
+
+  /* Spacing scale */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+
+  /* Border radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --transition-fast: 0.15s ease-out;
+  --transition-base: 0.2s ease-out;
+  --transition-slow: 0.3s ease-out;
+  --transition-bounce: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Enhanced base styles */
+html {
+  font-size: 18px;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-primary);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  direction: rtl;
+  /* Subtle texture background */
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 20px,
+      var(--bg-pattern) 20px,
+      var(--bg-pattern) 40px
+    );
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Folk art pattern overlay (optional decorative element) */
+.folk-pattern-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      var(--accent) 0px,
+      transparent 1px,
+      transparent 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      var(--accent) 0px,
+      transparent 1px,
+      transparent 4px
+    );
+  z-index: -1;
+}
+
+/* Enhanced container */
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 var(--space-lg);
+}
+
+.container-wide {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-lg);
+}
+
+/* Section styling */
+.section {
+  padding: var(--space-2xl) 0;
+  position: relative;
+}
+
+.section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 5%;
+  right: 5%;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--border-dark) 20%,
+    var(--border-dark) 80%,
+    transparent
+  );
+}
+
+.section:first-of-type::before {
+  display: none;
+}
+
+/* Enhanced section titles */
+.section-title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 var(--space-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  position: relative;
+  padding-bottom: var(--space-sm);
+}
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 80px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-light));
+  border-radius: var(--radius-full);
+}
+
+.section-title .emoji {
+  font-size: 1.75rem;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* Enhanced cards */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  box-shadow: var(--shadow-md);
+  border: 2px solid var(--border);
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-base);
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--folk-red), var(--folk-gold), var(--folk-blue), var(--folk-green));
+  opacity: 0.8;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-lg), var(--shadow-glow);
+  transform: translateY(-2px);
+  border-color: var(--accent-light);
+}
+
+/* Decorative corner brackets (folk art inspired) */
+.card-decorated::after,
+.card-decorated::before {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--accent);
+  opacity: 0.3;
+  transition: opacity var(--transition-base);
+}
+
+.card-decorated::before {
+  top: var(--space-sm);
+  right: var(--space-sm);
+  border-left: none;
+  border-bottom: none;
+}
+
+.card-decorated::after {
+  bottom: var(--space-sm);
+  left: var(--space-sm);
+  border-right: none;
+  border-top: none;
+}
+
+.card-decorated:hover::before,
+.card-decorated:hover::after {
+  opacity: 0.6;
+}
+
+/* Enhanced buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  border: none;
+  font-family: var(--font-primary);
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width var(--transition-slow), height var(--transition-slow);
+}
+
+.btn:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: var(--surface);
+  color: var(--accent);
+  border: 2px solid var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-secondary:hover {
+  background: var(--accent-glow);
+  border-color: var(--accent-dark);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--accent);
+  border: 2px solid transparent;
+}
+
+.btn-ghost:hover {
+  background: var(--accent-glow);
+  border-color: var(--accent-light);
+}
+
+/* Icon buttons */
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Enhanced forms */
+.form-group {
+  margin-bottom: var(--space-lg);
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: var(--space-sm);
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  font-family: var(--font-primary);
+  font-size: 1rem;
+  color: var(--text);
+  transition: all var(--transition-base);
+}
+
+.form-group textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+  background: var(--surface-elevated);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: var(--text-light);
+}
+
+/* Enhanced alerts */
+.error-msg,
+.success-msg {
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  margin-top: var(--space-md);
+  border-right: 4px solid;
+  animation: slideIn var(--transition-slow);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.error-msg {
+  color: var(--problem);
+  background: var(--problem-bg);
+  border-color: var(--problem);
+  box-shadow: 0 0 0 3px var(--problem-glow);
+}
+
+.success-msg {
+  color: var(--success);
+  background: var(--success-bg);
+  border-color: var(--success);
+  box-shadow: 0 0 0 3px var(--success-glow);
+}
+
+/* Loading spinner with folk art flair */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--border);
+  border-top-color: var(--accent);
+  border-right-color: var(--folk-gold);
+  border-bottom-color: var(--folk-blue);
+  border-left-color: var(--folk-green);
+  border-radius: 50%;
+  animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Badge/Chip components */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: var(--accent-glow);
+  color: var(--accent-dark);
+  border: 1px solid var(--accent-light);
+}
+
+.badge-success {
+  background: var(--success-glow);
+  color: var(--success);
+  border-color: var(--success);
+}
+
+.badge-vision {
+  background: var(--vision-glow);
+  color: var(--vision);
+  border-color: var(--vision);
+}
+
+/* Divider with folk pattern */
+.divider {
+  height: 2px;
+  margin: var(--space-xl) 0;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--border-dark),
+    var(--border-dark) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+  opacity: 0.5;
+}
+
+/* Utility classes */
+.text-center { text-align: center; }
+.text-muted { color: var(--text-muted); }
+.mb-0 { margin-bottom: 0; }
+.mt-md { margin-top: var(--space-md); }
+.mt-lg { margin-top: var(--space-lg); }
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.gap-sm { gap: var(--space-sm); }
+.gap-md { gap: var(--space-md); }
+.gap-lg { gap: var(--space-lg); }
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes dance {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn var(--transition-base);
+}
+
+.animate-scaleIn {
+  animation: scaleIn var(--transition-base);
+}
+
+.hover-dance:hover {
+  animation: dance 0.6s ease-in-out infinite;
+}
