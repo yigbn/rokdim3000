@@ -1,36 +1,40 @@
 import { Link } from "react-router-dom";
-import "./styles/landing.css";
 
 export default function Landing() {
   return (
     <main>
-      <header className="hero">
+      <header
+        style={{
+          background: "linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%)",
+          color: "white",
+          padding: "3rem 0",
+          textAlign: "center",
+        }}
+      >
         <div className="container">
-          <div className="hero-content">
-            <h1 className="hero-title">
-              רוקדים 300 — ריקודי עם בישראל
-            </h1>
-            <p className="hero-subtitle">
-              מהלך להכניס הרבה יותר מתחילים ומשתלבים למעגל הרוקדים
-            </p>
-            <div className="hero-buttons">
-              <Link to="/instructors" className="btn hero-btn-white">
-                כניסת מרקידים
-              </Link>
-              <Link to="/register" className="btn hero-btn-outline">
-                רוקדים? הצטרפו לעדכונים
-              </Link>
-            </div>
+          <h1 style={{ margin: "0 0 0.5rem", fontSize: "2.25rem", fontWeight: 700 }}>
+            רוקדים 300 — ריקודי עם בישראל
+          </h1>
+          <p style={{ margin: 0, fontSize: "1.15rem", opacity: 0.95 }}>
+            מהלך להכניס הרבה יותר מתחילים ומשתלבים למעגל הרוקדים
+          </p>
+          <div style={{ marginTop: "1.5rem" }}>
+            <Link to="/instructors" className="btn" style={{ background: "white", color: "var(--accent)", marginLeft: "0.5rem" }}>
+              כניסת מרקידים
+            </Link>
+            <Link to="/register" className="btn" style={{ background: "transparent", color: "white", border: "2px solid white" }}>
+              רוקדים? הצטרפו לעדכונים
+            </Link>
           </div>
         </div>
       </header>
 
-      <section className="section section-problem">
+      <section className="section" style={{ background: "var(--problem-bg)", borderBottom: "3px solid var(--problem)" }}>
         <div className="container">
-          <h2 className="section-title title-problem">
-            <span className="emoji" aria-hidden>⚠️</span> הבעיה
+          <h2 className="section-title" style={{ color: "var(--problem)" }}>
+            <span aria-hidden>⚠️</span> הבעיה
           </h2>
-          <div className="section-content content-muted">
+          <div className="section-content" style={{ color: "var(--step)" }}>
             <p>
               ריקודי העם בישראל הם עולם עשיר, שמח ומצליח, אבל לרבים קשה להיכנס אליו. מי שמגיעים מחוג מתחילים, רוקדי עבר שרוצים לחזור, או אנשים שפשוט רוצים להצטרף להרקדה, מגלים לא פעם שיש פער גדול בין הרצון לרקוד לבין היכולת להשתלב בפועל. אינדיקציה ברורה לזה היא הקושי למצוא רוקדים להרקדות מתחילים, והאחוז הנמוך של קודמים בהרקדות מתחילים שמצליחים בסופו של דבר להשתלב בהרקדות הגדולות. הבעיה שאנחנו באים לפתור היא הגדלת מספר הרוקדים — לא פגיעה במרקידים.
             </p>
@@ -50,12 +54,12 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="section section-vision">
+      <section className="section" style={{ background: "var(--vision-bg)", borderBottom: "3px solid var(--vision)" }}>
         <div className="container">
-          <h2 className="section-title title-vision">
-            <span className="emoji" aria-hidden>🎯</span> החזון
+          <h2 className="section-title" style={{ color: "var(--vision)" }}>
+            <span aria-hidden>🎯</span> החזון
           </h2>
-          <div className="section-content content-muted">
+          <div className="section-content" style={{ color: "var(--step)" }}>
             <p>
               החזון הוא להשתמש במידע שנאסף מהמרקידים ומהרוקדים כדי לבנות מסלולי כניסה טובים יותר לריקודי עם: לדעת מהם הריקודים המשותפים, מהם הריקודים שמבדילים בין הרקדות, ואילו שילובים יאפשרו לרוקדים חדשים, רוקדי עבר ורוקדי ביניים להרגיש בבית מהר יותר.
             </p>
@@ -63,7 +67,7 @@ export default function Landing() {
               להגדרת ריקודי סטנדרט עדיין יש חשיבות גדולה, במיוחד אם רוצים להבין מהו הבסיס המשותף ומהם הריקודים המיוחדים של כל מרקיד או הרקדה. אבל בשלב הנוכחי הפוקוס הוא רחב יותר: איסוף מידע מהשטח, זיהוי דפוסים, ובניית תשתית שתעזור להגדיל את קהילת הרוקדים.
             </p>
             <p>
-              <strong>אוסף ריקודים סטנדרטיים</strong> — כ־300 ריקודים (חציים זוגות וחציים מעגלים), עם הרחבה טבעית ל־600 — 150 מעגלים ו־150 זוגות לרוקדים ש"רוקדים רק מעגלים" או "רוקדים רק זוגות". השאיפה היא שהם יהיו מכל הסגנונות, מכל הרמות ומכל הזמנים.
+              <strong>אוסף ריקודים סטנדרטיים</strong> — כ־300 ריקודים (חציים זוגות וחציים מעגלים), עם הרחבה טבעית ל־600 — 150 מעגלים ו־150 זוגות לרוקדים ש"רוקדים רק מעגלים" או "רוקדים רק זוגות".
             </p>
             <p>
               <strong>דינמיות מתונה:</strong> פעם בחודש בכל קבוצה של 150 — נכנסים 2 ריקודים (ותיק + חדש) ויוצאים 2, כשההחלטה מתקבלת בדמוקרטיה של קהילת הרוקדים. כך בכל שנה מוחלפים 48 ריקודים, 24 מהם חדשים לגמרי — וריקוד חדש שנכנס הוא בוודאות רצוי על ידי רבים, ולא יילמד פעמיים־שלוש וייעלם.
@@ -78,12 +82,12 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="section section-step">
+      <section className="section" style={{ background: "var(--step-bg)", borderBottom: "3px solid var(--step)" }}>
         <div className="container">
-          <h2 className="section-title title-step">
-            <span className="emoji" aria-hidden>👣</span> התוכנית
+          <h2 className="section-title" style={{ color: "var(--step)" }}>
+            <span aria-hidden>👣</span> התוכנית
           </h2>
-          <div className="section-content content-muted">
+          <div className="section-content" style={{ color: "var(--step)" }}>
             <p>
               <strong>שלב ראשון, כשלושה חודשים:</strong> כל מרקיד יקבל שם משתמש וסיסמה, ויוכל להזין רשימה של עד 300 ריקודי מעגל ועד 300 ריקודי זוגות בטקסט חופשי. אפשר גם להוסיף הערות, להסביר מה מאפיין את ההרקדה, או ליצור איתי קשר ולשלוח קובץ בכל פורמט נוח. מומלץ גם להיכנס ל<Link to="/dances">ריקודים</Link> ולהבין ( או להעיר על ) איך תיראה רשימת הריקודים ואפשרויות ניהול הידע של הרוקדים.
             </p>
@@ -96,8 +100,8 @@ export default function Landing() {
             <p>
               <strong>שלב שלישי, אם שני השלבים הראשונים יצליחו:</strong> המערכת תנתח את המידע שנאסף ותציע הרקדות בארץ שיאפשרו לכמה שיותר רוקדים חדשים ומשתלבים להיכנס לעניינים, תוך שמירה על איכות, שמחה וגיוון.
             </p>
-            <div className="action-buttons">
-              <Link to="/instructors" className="btn btn-primary">
+            <div style={{ marginTop: "1.5rem" }}>
+              <Link to="/instructors" className="btn btn-primary" style={{ marginLeft: "0.5rem" }}>
                 כניסת מרקידים
               </Link>
               <Link to="/register" className="btn btn-secondary">
@@ -108,9 +112,9 @@ export default function Landing() {
         </div>
       </section>
 
-      <footer className="landing-footer">
+      <footer style={{ padding: "2rem 0", textAlign: "center", color: "var(--text-muted)", fontSize: "0.9rem" }}>
         <div className="container">
-          <p className="mb-0">רוקדים 300 — מהלך קהילתי להגדלת מעגל רוקדי העם בישראל</p>
+
         </div>
       </footer>
     </main>
