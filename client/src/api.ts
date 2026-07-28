@@ -158,43 +158,79 @@ export interface InstructorSubmission {
   updatedAt: number | null;
 }
 
-function getInstructorToken(): string | null {
-  return localStorage.getItem("rokdim300_instructor_token");
+const ADMIN_TOKEN_KEY = "rokdim300_admin_token";
+const LEGACY_INSTRUCTOR_TOKEN_KEY = "rokdim300_instructor_token";
+
+export function getAdminToken(): string | null {
+  let token = localStorage.getItem(ADMIN_TOKEN_KEY);
+  if (!token) {
+    const legacy = localStorage.getItem(LEGACY_INSTRUCTOR_TOKEN_KEY);
+    if (legacy) {
+      localStorage.setItem(ADMIN_TOKEN_KEY, legacy);
+      localStorage.removeItem(LEGACY_INSTRUCTOR_TOKEN_KEY);
+      token = legacy;
+    }
+  }
+  return token;
 }
 
-export function isInstructorLoggedIn(): boolean {
-  return Boolean(getInstructorToken());
+export function isAdminTokenLoggedIn(): boolean {
+  return Boolean(getAdminToken());
 }
 
-function instructorHeaders(): HeadersInit {
-  const token = getInstructorToken();
+function adminHeaders(): HeadersInit {
+  const token = getAdminToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-export const instructors = {
+export const admin = {
   login: (email: string, password: string) =>
-    request<{ token: string }>("/instructors/login", {
+    request<{ token: string }>("/admin/login", {
       method: "POST",
       body: { email, password },
     }),
+  listInstructors: () =>
+    request<Array<{
+      email: string;
+      lastLoginAt: number | null;
+      createdAt: number | null;
+      updatedAt: number | null;
+      hasSubmission: boolean;
+      circleDanceCount: number;
+      coupleDanceCount: number;
+    }>>("/instructors", { headers: adminHeaders() }),
+  getInstructor: (email: string) =>
+    request<
+      InstructorSubmission & {
+        email: string;
+        createdAt: number | null;
+        lastLoginAt: number | null;
+        loginCount: number;
+      }
+    >(`/instructors/${encodeURIComponent(email)}`, { headers: adminHeaders() }),
   getSubmission: () =>
     request<InstructorSubmission>("/instructors/submission", {
-      headers: instructorHeaders(),
+      headers: adminHeaders(),
     }),
   saveSubmission: (data: Omit<InstructorSubmission, "updatedAt">) =>
     request<InstructorSubmission>("/instructors/submission", {
       method: "PUT",
-      headers: instructorHeaders(),
+      headers: adminHeaders(),
       body: data,
     }),
   getRating: (danceId: number) =>
     request<{ knowledge: number | null; enjoyment: number | null; updatedAt: number | null }>(
       `/instructors/ratings/${danceId}`,
-      { headers: instructorHeaders() },
+      { headers: adminHeaders() },
     ),
   setRating: (danceId: number, knowledge: number, enjoyment: number) =>
     request<{ danceId: number; knowledge: number; enjoyment: number; updatedAt: number }>(
       `/instructors/ratings/${danceId}`,
-      { method: "PUT", headers: instructorHeaders(), body: { knowledge, enjoyment } },
+      { method: "PUT", headers: adminHeaders(), body: { knowledge, enjoyment } },
     ),
 };
+
+/** @deprecated use admin */
+export const instructors = admin;
+/** @deprecated use isAdminTokenLoggedIn */
+export const isInstructorLoggedIn = isAdminTokenLoggedIn;

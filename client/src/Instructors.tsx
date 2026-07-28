@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { instructors, type InstructorSubmission } from "./api";
+import { admin, type InstructorSubmission } from "./api";
 
-const TOKEN_STORAGE_KEY = "rokdim300_instructor_token";
+const TOKEN_STORAGE_KEY = "rokdim300_admin_token";
 const MAX_DANCES_PER_LIST = 300;
 
 type InstructorSubmissionForm = {
@@ -50,7 +50,7 @@ export default function Instructors() {
     setLoadingSubmission(true);
     setSaveError("");
 
-    instructors
+    admin
       .getSubmission()
       .then((data) => {
         if (!ignore) setSubmission(toSubmissionForm(data));
@@ -76,7 +76,7 @@ export default function Instructors() {
     setLoginLoading(true);
 
     try {
-      const { token } = await instructors.login(email, password);
+      const { token } = await admin.login(email, password);
       localStorage.setItem(TOKEN_STORAGE_KEY, token);
       setAuthenticated(true);
       setPassword("");
@@ -98,6 +98,7 @@ export default function Instructors() {
 
   function handleLogout() {
     localStorage.removeItem(TOKEN_STORAGE_KEY);
+    localStorage.removeItem("rokdim300_instructor_token");
     setAuthenticated(false);
     setEmail("");
     setPassword("");
@@ -117,7 +118,7 @@ export default function Instructors() {
 
     setSaving(true);
     try {
-      const saved = await instructors.saveSubmission(submission);
+      const saved = await admin.saveSubmission(submission);
       setSubmission(toSubmissionForm(saved));
       setMessage("הרשימות נשמרו בשרת. אפשר לחזור ולעדכן אותן בהמשך.");
     } catch (err) {

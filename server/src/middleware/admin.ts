@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 
-const ADMIN_EMAIL = "yben99@gmail.com";
+export const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "yben99@gmail.com";
 
 export function requireAdmin(req: Request, res: Response, next: NextFunction): void {
   const auth = (req as Request & { auth?: { userId: number; email: string } }).auth;
