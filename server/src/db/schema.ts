@@ -88,8 +88,6 @@ export function initDb(db: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     CREATE INDEX IF NOT EXISTS idx_users_reset_token ON users(reset_token);
     CREATE INDEX IF NOT EXISTS idx_instructors_username ON instructors(username);
-    CREATE INDEX IF NOT EXISTS idx_instructor_submissions_username ON instructor_submissions(username);
-    CREATE INDEX IF NOT EXISTS idx_instructor_logins_username ON instructor_logins(username);
   `);
   migrateDancesTable(db);
   migrateInstructorAuth(db);
