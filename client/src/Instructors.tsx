@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { admin, type InstructorSubmission } from "./api";
+import { instructors, type InstructorSubmission } from "./api";
 
-const TOKEN_STORAGE_KEY = "rokdim300_admin_token";
+const TOKEN_STORAGE_KEY = "rokdim300_instructor_token";
 const MAX_DANCES_PER_LIST = 300;
 
 type InstructorSubmissionForm = {
@@ -29,7 +29,7 @@ export default function Instructors() {
   const [authenticated, setAuthenticated] = useState(
     () => Boolean(localStorage.getItem(TOKEN_STORAGE_KEY)),
   );
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
@@ -50,7 +50,7 @@ export default function Instructors() {
     setLoadingSubmission(true);
     setSaveError("");
 
-    admin
+    instructors
       .getSubmission()
       .then((data) => {
         if (!ignore) setSubmission(toSubmissionForm(data));
@@ -76,7 +76,7 @@ export default function Instructors() {
     setLoginLoading(true);
 
     try {
-      const { token } = await admin.login(email, password);
+      const { token } = await instructors.login(username, password);
       localStorage.setItem(TOKEN_STORAGE_KEY, token);
       setAuthenticated(true);
       setPassword("");
@@ -98,9 +98,8 @@ export default function Instructors() {
 
   function handleLogout() {
     localStorage.removeItem(TOKEN_STORAGE_KEY);
-    localStorage.removeItem("rokdim300_instructor_token");
     setAuthenticated(false);
-    setEmail("");
+    setUsername("");
     setPassword("");
     setMessage("");
     setSaveError("");
@@ -118,7 +117,7 @@ export default function Instructors() {
 
     setSaving(true);
     try {
-      const saved = await admin.saveSubmission(submission);
+      const saved = await instructors.saveSubmission(submission);
       setSubmission(toSubmissionForm(saved));
       setMessage("הרשימות נשמרו בשרת. אפשר לחזור ולעדכן אותן בהמשך.");
     } catch (err) {
@@ -138,14 +137,14 @@ export default function Instructors() {
         </p>
         <form onSubmit={handleLogin}>
           <div className="form-group">
-            <label htmlFor="instructor-email">אימייל</label>
+            <label htmlFor="instructor-username">שם משתמש</label>
             <input
-              id="instructor-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="instructor-username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
-              autoComplete="email"
+              autoComplete="username"
             />
           </div>
           <div className="form-group">

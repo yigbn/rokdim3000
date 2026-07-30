@@ -5,8 +5,8 @@ import {
   dances as dancesApi,
   danceOpinions,
   danceRatings,
-  admin as adminApi,
-  isAdminTokenLoggedIn,
+  instructors as instructorsApi,
+  isInstructorLoggedIn,
   type Dance,
   type DanceInput,
 } from "./api";
@@ -53,9 +53,9 @@ export default function Dances() {
   const [ratingSaving, setRatingSaving] = useState(false);
 
   const isAdmin = auth.profile?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
-  const adminTokenLoggedIn = isAdminTokenLoggedIn();
-  const canRate = Boolean(auth.token || adminTokenLoggedIn);
-  const useAdminTokenRatings = adminTokenLoggedIn;
+  const instructorLoggedIn = isInstructorLoggedIn();
+  const canRate = Boolean(auth.token || instructorLoggedIn);
+  const useInstructorRatings = instructorLoggedIn;
   const filteredList = list.filter((d) => {
     if (typeFilter && d.type !== typeFilter) return false;
     if (nameFilter && !d.name.startsWith(nameFilter)) return false;
@@ -98,8 +98,8 @@ export default function Dances() {
   // Load rating when selection changes (logged-in users or instructors)
   useEffect(() => {
     if (!canRate || !selectedDanceId) return;
-    const loadRating = useAdminTokenRatings
-      ? adminApi.getRating(selectedDanceId)
+    const loadRating = useInstructorRatings
+      ? instructorsApi.getRating(selectedDanceId)
       : danceRatings.get(selectedDanceId);
     loadRating.then((r) => {
       setRatingKnowledge(r.knowledge ?? 3);
@@ -108,7 +108,7 @@ export default function Dances() {
       setRatingKnowledge(3);
       setRatingEnjoyment(3);
     });
-  }, [canRate, useAdminTokenRatings, selectedDanceId]);
+  }, [canRate, useInstructorRatings, selectedDanceId]);
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -199,8 +199,8 @@ export default function Dances() {
       if (!danceId) return;
       setRatingSaving(true);
       try {
-        if (useAdminTokenRatings) {
-          await adminApi.setRating(danceId, knowledge, enjoyment);
+        if (useInstructorRatings) {
+          await instructorsApi.setRating(danceId, knowledge, enjoyment);
         } else {
           await danceRatings.set(danceId, knowledge, enjoyment);
         }
@@ -336,7 +336,7 @@ export default function Dances() {
       {!loading && list.length > 0 && canRate && (
         <p style={{ marginBottom: "0.75rem", fontSize: "0.95rem", color: "var(--text-muted)" }}>
           לחצו על שורה כדי לבחור ריקוד ולדרג אותו (כמה אתם יודעים / כמה אוהבים לרקוד) — הדירוג יופיע מתחת לטבלה.
-          {useAdminTokenRatings && !auth.token && " כך יחוו גם הרוקדים את הדף."}
+          {useInstructorRatings && !auth.token && " כך יחוו גם הרוקדים את הדף."}
         </p>
       )}
 

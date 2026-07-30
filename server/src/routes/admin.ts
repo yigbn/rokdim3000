@@ -1,19 +1,28 @@
 import { Router } from "express";
+import bcrypt from "bcryptjs";
 import { signToken } from "../auth.js";
 import { ADMIN_EMAIL } from "../middleware/admin.js";
+import { requireAdminToken } from "../middleware/adminToken.js";
 import { getDb } from "../db/schema.js";
 
 const router = Router();
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "sonus0feve";
+const SALT_ROUNDS = 10;
+const USERNAME_PATTERN = /^[a-z0-9_-]{3,32}$/;
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
-function recordInstructorLogin(email: string): void {
-  const db = getDb();
-  db.prepare("INSERT INTO instructor_logins (email, logged_at) VALUES (?, ?)").run(email, Date.now());
-  db.close();
+function normalizeUsername(username: string): string {
+  return username.trim().toLowerCase();
+}
+
+function generateSimplePassword(): string {
+  const parts = ["dance", "horaa", "rikud", "maagal", "zug", "step", "rim", "gal"];
+  const pick = () => parts[Math.floor(Math.random() * parts.length)];
+  const num = Math.floor(100 + Math.random() * 900);
+  return `${pick()}${num}${pick()}`;
 }
 
 router.post("/login", (req, res) => {
@@ -28,10 +37,48 @@ router.post("/login", (req, res) => {
     return;
   }
 
-  const normalizedEmail = normalizeEmail(email);
-  const token = signToken({ userId: 0, email: normalizedEmail });
-  recordInstructorLogin(normalizedEmail);
+  const token = signToken({ userId: 0, email: normalizeEmail(email) });
   res.json({ token });
+});
+
+router.post("/instructors", requireAdminToken, (req, res) => {
+  const { username } = req.body as { username?: string };
+  if (!username?.trim()) {
+    res.status(400).json({ error: "Username required" });
+    return;
+  }
+
+  const normalizedUsername = normalizeUsername(username);
+  if (!USERNAME_PATTERN.test(normalizedUsername)) {
+    res.status(400).json({
+      error: "Username must be 3–32 characters: lowercase letters, digits, _ or -",
+    });
+    return;
+  }
+
+  const db = getDb();
+  const existing = db
+    .prepare("SELECT id FROM instructors WHERE username = ?")
+    .get(normalizedUsername) as { id: number } | undefined;
+  if (existing) {
+    db.close();
+    res.status(409).json({ error: "Username already taken" });
+    return;
+  }
+
+  const plainPassword = generateSimplePassword();
+  const passwordHash = bcrypt.hashSync(plainPassword, SALT_ROUNDS);
+  const now = Date.now();
+  db.prepare(
+    "INSERT INTO instructors (username, password_hash, created_at, updated_at) VALUES (?, ?, ?, ?)",
+  ).run(normalizedUsername, passwordHash, now, now);
+  db.close();
+
+  res.status(201).json({
+    username: normalizedUsername,
+    password: plainPassword,
+    message: "Send these credentials to the instructor. The password is shown only once.",
+  });
 });
 
 export default router;
