@@ -158,6 +158,14 @@ export interface InstructorSubmission {
   updatedAt: number | null;
 }
 
+export interface InstructorFile {
+  id: number;
+  originalName: string;
+  mimeType: string | null;
+  sizeBytes: number;
+  uploadedAt: number;
+}
+
 const ADMIN_TOKEN_KEY = "rokdim300_admin_token";
 const INSTRUCTOR_TOKEN_KEY = "rokdim300_instructor_token";
 
@@ -208,7 +216,13 @@ export const admin = {
       hasSubmission: boolean;
       circleDanceCount: number;
       coupleDanceCount: number;
+      fileCount: number;
     }>>("/instructors", { headers: adminHeaders() }),
+  listInstructorUploads: () =>
+    request<Array<{ username: string; fileCount: number; files: InstructorFile[] }>>(
+      "/instructors/uploads",
+      { headers: adminHeaders() },
+    ),
   getInstructor: (username: string) =>
     request<
       InstructorSubmission & {
@@ -217,6 +231,8 @@ export const admin = {
         accountCreatedAt: number | null;
         lastLoginAt: number | null;
         loginCount: number;
+        fileCount: number;
+        files: InstructorFile[];
       }
     >(`/instructors/${encodeURIComponent(username)}`, { headers: adminHeaders() }),
 };
@@ -247,4 +263,19 @@ export const instructors = {
       `/instructors/ratings/${danceId}`,
       { method: "PUT", headers: instructorHeaders(), body: { knowledge, enjoyment } },
     ),
+  getFiles: () =>
+    request<InstructorFile[]>("/instructors/files", { headers: instructorHeaders() }),
+  uploadFile: async (file: File): Promise<InstructorFile> => {
+    const token = getInstructorToken();
+    const form = new FormData();
+    form.append("file", file);
+    const res = await fetch(`${API_BASE}/instructors/files`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: form,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error((data as { error?: string }).error || res.statusText);
+    return data as InstructorFile;
+  },
 };

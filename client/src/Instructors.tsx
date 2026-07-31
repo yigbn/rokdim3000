@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { instructors, type InstructorSubmission } from "./api";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { instructors, type InstructorFile, type InstructorSubmission } from "./api";
 
 const TOKEN_STORAGE_KEY = "rokdim300_instructor_token";
 const MAX_DANCES_PER_LIST = 300;
@@ -17,6 +17,16 @@ function countDanceLines(value: string): number {
     .filter(Boolean).length;
 }
 
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function formatUploadDate(timestamp: number): string {
+  return new Date(timestamp).toLocaleString("he-IL");
+}
+
 function toSubmissionForm(submission: InstructorSubmission): InstructorSubmissionForm {
   return {
     circleDances: submission.circleDances,
@@ -26,6 +36,7 @@ function toSubmissionForm(submission: InstructorSubmission): InstructorSubmissio
 }
 
 export default function Instructors() {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [authenticated, setAuthenticated] = useState(
     () => Boolean(localStorage.getItem(TOKEN_STORAGE_KEY)),
   );
@@ -38,10 +49,13 @@ export default function Instructors() {
     coupleDances: "",
     notes: "",
   });
+  const [files, setFiles] = useState<InstructorFile[]>([]);
   const [loadingSubmission, setLoadingSubmission] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [saveError, setSaveError] = useState("");
+  const [uploadError, setUploadError] = useState("");
 
   useEffect(() => {
     if (!authenticated) return;
@@ -49,11 +63,13 @@ export default function Instructors() {
     let ignore = false;
     setLoadingSubmission(true);
     setSaveError("");
+    setUploadError("");
 
-    instructors
-      .getSubmission()
-      .then((data) => {
-        if (!ignore) setSubmission(toSubmissionForm(data));
+    Promise.all([instructors.getSubmission(), instructors.getFiles()])
+      .then(([data, uploadedFiles]) => {
+        if (ignore) return;
+        setSubmission(toSubmissionForm(data));
+        setFiles(uploadedFiles);
       })
       .catch((err) => {
         if (ignore) return;
@@ -103,6 +119,8 @@ export default function Instructors() {
     setPassword("");
     setMessage("");
     setSaveError("");
+    setUploadError("");
+    setFiles([]);
   }
 
   async function handleSave(e: FormEvent) {
@@ -124,6 +142,25 @@ export default function Instructors() {
       setSaveError(err instanceof Error ? err.message : "שגיאה בשמירה");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleFileSelected(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    setUploadError("");
+    setMessage("");
+    setUploading(true);
+    try {
+      const uploaded = await instructors.uploadFile(file);
+      setFiles((current) => [uploaded, ...current]);
+      setMessage(`הקובץ "${uploaded.originalName}" נשמר בשרת.`);
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "שגיאה בהעלאת הקובץ");
+    } finally {
+      setUploading(false);
     }
   }
 
@@ -182,13 +219,50 @@ export default function Instructors() {
         <div>
           <h1 style={{ margin: "0 0 0.5rem" }}>רשימות מרקידים</h1>
           <p style={{ color: "var(--text-muted)", margin: 0 }}>
-            אפשר לכתוב כל ריקוד בשורה נפרדת, או להדביק טקסט חופשי. אם נוח יותר
-            לשלוח קובץ בפורמט אחר, אפשר ליצור איתי קשר ואכניס אותו למערכת.
+            אפשר לכתוב כל ריקוד בשורה נפרדת, להדביק טקסט חופשי, או לעלות קובץ
+            (Excel, Word, PDF, CSV וכדומה).
           </p>
         </div>
         <button type="button" className="btn btn-secondary" onClick={handleLogout}>
           יציאה
         </button>
+      </div>
+
+      <div
+        style={{
+          marginBottom: "1.5rem",
+          padding: "1rem",
+          borderRadius: "8px",
+          background: "var(--step-bg)",
+          border: "1px solid var(--border)",
+        }}
+      >
+        <h2 style={{ margin: "0 0 0.75rem", fontSize: "1.1rem" }}>העלאת קובץ</h2>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".txt,.csv,.xls,.xlsx,.doc,.docx,.pdf,.odt,.json"
+          style={{ display: "none" }}
+          onChange={handleFileSelected}
+        />
+        <button
+          type="button"
+          className="btn btn-primary"
+          disabled={uploading}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {uploading ? "מעלה..." : "בחירת קובץ להעלאה"}
+        </button>
+        {uploadError && <p className="error-msg" style={{ marginTop: "0.75rem" }}>{uploadError}</p>}
+        {files.length > 0 && (
+          <ul style={{ margin: "0.75rem 0 0", paddingRight: "1.25rem" }}>
+            {files.map((file) => (
+              <li key={file.id} style={{ marginBottom: "0.35rem" }}>
+                {file.originalName} ({formatFileSize(file.sizeBytes)}) — {formatUploadDate(file.uploadedAt)}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <form onSubmit={handleSave}>
@@ -206,7 +280,6 @@ export default function Instructors() {
                 circleDances: e.target.value,
               }))
             }
-            placeholder={"לדוגמה:\nעוד לא אהבתי די\nערב בא\nהורה מדורה"}
             rows={10}
           />
         </div>
@@ -224,7 +297,6 @@ export default function Instructors() {
                 coupleDances: e.target.value,
               }))
             }
-            placeholder={"לדוגמה:\nשירי לי כנרת\nצליל מיתר\nלילה לילה"}
             rows={10}
           />
         </div>

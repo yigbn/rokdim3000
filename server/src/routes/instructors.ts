@@ -1,12 +1,23 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
+import multer from "multer";
+import path from "node:path";
+import fs from "node:fs";
+import { fileURLToPath } from "node:url";
 import { signToken } from "../auth.js";
 import { getDb } from "../db/schema.js";
 import { requireAdminToken } from "../middleware/adminToken.js";
 import { requireInstructorToken, type InstructorTokenRequest } from "../middleware/instructorToken.js";
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const instructorUploadsRoot = path.join(__dirname, "../../uploads/instructors");
+if (!fs.existsSync(instructorUploadsRoot)) {
+  fs.mkdirSync(instructorUploadsRoot, { recursive: true });
+}
+
 const router = Router();
 const MAX_DANCES_PER_LIST = 300;
+const MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024;
 
 type InstructorSubmissionRow = {
   username: string;
@@ -25,7 +36,55 @@ type InstructorListRow = {
   circle_dances: string | null;
   couple_dances: string | null;
   notes: string | null;
+  file_count: number;
 };
+
+type InstructorFileRow = {
+  id: number;
+  username: string;
+  original_name: string;
+  stored_path: string;
+  mime_type: string | null;
+  size_bytes: number;
+  uploaded_at: number;
+};
+
+const instructorFileUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, _file, cb) => {
+      const username = (req as InstructorTokenRequest).instructorUsername!;
+      const dir = path.join(instructorUploadsRoot, username);
+      fs.mkdirSync(dir, { recursive: true });
+      cb(null, dir);
+    },
+    filename: (_req, file, cb) => {
+      const safe = file.originalname.replace(/[^\w.\-()\u0590-\u05FF\s]/g, "_").slice(0, 120);
+      cb(null, `${Date.now()}-${safe}`);
+    },
+  }),
+  limits: { fileSize: MAX_FILE_SIZE_BYTES },
+});
+
+function mapInstructorFile(row: InstructorFileRow) {
+  return {
+    id: row.id,
+    originalName: row.original_name,
+    mimeType: row.mime_type,
+    sizeBytes: row.size_bytes,
+    uploadedAt: row.uploaded_at,
+  };
+}
+
+function listInstructorFiles(username: string): ReturnType<typeof mapInstructorFile>[] {
+  const db = getDb();
+  const rows = db
+    .prepare(
+      "SELECT id, username, original_name, stored_path, mime_type, size_bytes, uploaded_at FROM instructor_files WHERE username = ? ORDER BY uploaded_at DESC",
+    )
+    .all(username) as InstructorFileRow[];
+  db.close();
+  return rows.map(mapInstructorFile);
+}
 
 function normalizeUsername(username: string): string {
   return username.trim().toLowerCase();
@@ -60,6 +119,7 @@ function mapInstructorSummary(row: InstructorListRow) {
     hasSubmission: Boolean(circleDances.trim() || coupleDances.trim() || (row.notes ?? "").trim()),
     circleDanceCount: countDanceLines(circleDances),
     coupleDanceCount: countDanceLines(coupleDances),
+    fileCount: row.file_count ?? 0,
   };
 }
 
@@ -117,7 +177,8 @@ router.get("/", requireAdminToken, (_req, res) => {
          s.updated_at,
          s.circle_dances,
          s.couple_dances,
-         s.notes
+         s.notes,
+         (SELECT COUNT(*) FROM instructor_files f WHERE f.username = u.username) AS file_count
        FROM (
          SELECT username FROM instructors
          UNION
@@ -132,6 +193,74 @@ router.get("/", requireAdminToken, (_req, res) => {
   db.close();
 
   res.json(rows.map(mapInstructorSummary));
+});
+
+/** Admin only: uploaded files per instructor. */
+router.get("/uploads", requireAdminToken, (_req, res) => {
+  const db = getDb();
+  const usernames = db
+    .prepare(
+      `SELECT DISTINCT username FROM (
+         SELECT username FROM instructor_files
+         UNION
+         SELECT username FROM instructors
+       ) ORDER BY username`,
+    )
+    .all() as { username: string }[];
+  db.close();
+
+  res.json(
+    usernames.map(({ username }) => {
+      const files = listInstructorFiles(username);
+      return { username, fileCount: files.length, files };
+    }),
+  );
+});
+
+router.post("/files", requireInstructorToken, (req: InstructorTokenRequest, res) => {
+  instructorFileUpload.single("file")(req, res, (err) => {
+    if (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE") {
+      res.status(400).json({ error: "הקובץ גדול מדי (עד 15MB)" });
+      return;
+    }
+    if (err) {
+      res.status(400).json({ error: err instanceof Error ? err.message : "שגיאה בהעלאת הקובץ" });
+      return;
+    }
+
+    const uploaded = req.file;
+    if (!uploaded) {
+      res.status(400).json({ error: "לא נבחר קובץ" });
+      return;
+    }
+
+    const db = getDb();
+    const now = Date.now();
+    const result = db
+      .prepare(
+        "INSERT INTO instructor_files (username, original_name, stored_path, mime_type, size_bytes, uploaded_at) VALUES (?, ?, ?, ?, ?, ?)",
+      )
+      .run(
+        req.instructorUsername,
+        uploaded.originalname,
+        uploaded.path,
+        uploaded.mimetype || null,
+        uploaded.size,
+        now,
+      );
+    const row = db
+      .prepare(
+        "SELECT id, username, original_name, stored_path, mime_type, size_bytes, uploaded_at FROM instructor_files WHERE id = ?",
+      )
+      .get(Number(result.lastInsertRowid)) as InstructorFileRow;
+    db.close();
+
+    res.status(201).json(mapInstructorFile(row));
+  });
+});
+
+router.get("/files", requireInstructorToken, (req: InstructorTokenRequest, res) => {
+  res.json(listInstructorFiles(req.instructorUsername!));
 });
 
 router.get("/submission", requireInstructorToken, (req: InstructorTokenRequest, res) => {
@@ -256,6 +385,9 @@ router.get("/:username", requireAdminToken, (req, res) => {
   const loginCount = db
     .prepare("SELECT COUNT(*) AS count FROM instructor_logins WHERE username = ?")
     .get(username) as { count: number };
+  const fileCount = db
+    .prepare("SELECT COUNT(*) AS count FROM instructor_files WHERE username = ?")
+    .get(username) as { count: number };
   db.close();
 
   if (!account && !submission && !lastLogin?.logged_at) {
@@ -275,6 +407,8 @@ router.get("/:username", requireAdminToken, (req, res) => {
     accountCreatedAt: account?.created_at ?? null,
     lastLoginAt: lastLogin?.logged_at ?? null,
     loginCount: loginCount.count,
+    fileCount: fileCount.count,
+    files: listInstructorFiles(username),
   });
 });
 

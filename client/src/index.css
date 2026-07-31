@@ -90,6 +90,45 @@ textarea {
   margin-bottom: 0;
 }
 
+.landing-page .container {
+  max-width: 960px;
+}
+
+.landing-page header {
+  padding: 2rem 0 !important;
+}
+
+.landing-page header h1 {
+  font-size: 1.85rem !important;
+}
+
+.landing-page header p {
+  font-size: 1rem !important;
+}
+
+.landing-page .section {
+  padding: 1.25rem 0;
+}
+
+.landing-page .section-title {
+  font-size: 1.2rem;
+  margin-bottom: 0.6rem;
+}
+
+.landing-page .section-content {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.landing-page .section-content p {
+  margin-bottom: 0.6rem;
+}
+
+.landing-page footer {
+  padding: 1.25rem 0 !important;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;

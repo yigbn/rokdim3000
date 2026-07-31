@@ -85,9 +85,20 @@ export function initDb(db: Database.Database): void {
       updated_at INTEGER NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS instructor_files (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT NOT NULL,
+      original_name TEXT NOT NULL,
+      stored_path TEXT NOT NULL,
+      mime_type TEXT,
+      size_bytes INTEGER NOT NULL,
+      uploaded_at INTEGER NOT NULL
+    );
+
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     CREATE INDEX IF NOT EXISTS idx_users_reset_token ON users(reset_token);
     CREATE INDEX IF NOT EXISTS idx_instructors_username ON instructors(username);
+    CREATE INDEX IF NOT EXISTS idx_instructor_files_username ON instructor_files(username);
   `);
   migrateDancesTable(db);
   migrateInstructorAuth(db);
@@ -144,4 +155,17 @@ export function migrateInstructorAuth(db: Database.Database): void {
   if (tableHasColumn(db, "instructor_logins", "username")) {
     db.exec("CREATE INDEX IF NOT EXISTS idx_instructor_logins_username ON instructor_logins(username)");
   }
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS instructor_files (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT NOT NULL,
+      original_name TEXT NOT NULL,
+      stored_path TEXT NOT NULL,
+      mime_type TEXT,
+      size_bytes INTEGER NOT NULL,
+      uploaded_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_instructor_files_username ON instructor_files(username);
+  `);
 }
