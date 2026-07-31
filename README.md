@@ -41,23 +41,10 @@ npm run dev:client  # client only, port 5173 (proxies /api and /uploads to 3000)
 
 ## Env (optional)
 
-- **Server:** create `server/.env` with `PORT`, `JWT_SECRET`, `DB_PATH`, `CLIENT_ORIGIN`, `APP_URL` (for reset-password link), `HTTPS=false` when running behind an HTTPS reverse proxy, and optionally `HTTPS_KEY_PATH` / `HTTPS_CERT_PATH`.
+- **Server:** create `server/.env` with `PORT`, `JWT_SECRET`, `DB_PATH`, `CLIENT_ORIGIN`, `APP_URL` (for reset-password link), and optionally `HTTPS_KEY_PATH` / `HTTPS_CERT_PATH`.
 - **Password reset email:** set `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, and optionally `SMTP_SECURE`, `MAIL_FROM`. If not set, the reset link is returned in the API response (for dev only).
 - **Dance admin:** only user `yben99@gmail.com` can add/edit dances (see `server/src/middleware/admin.ts`).
 - **Client:** uses Vite proxy to `/api` and `/uploads` when running `npm run dev`.
-
-## EC2/nginx Deploy
-
-When nginx terminates HTTPS and proxies API requests to the Node server on localhost, keep the PM2 server as HTTP internally:
-
-```bash
-# server/.env on the EC2 instance
-HTTPS=false
-CLIENT_ORIGIN=https://rokdim300.co.il
-APP_URL=https://rokdim300.co.il
-```
-
-The public web pages and API remain HTTPS through nginx; only the private nginx-to-Node hop uses HTTP.
 
 ## Features
 
