@@ -145,23 +145,38 @@ export default function Instructors() {
     }
   }
 
-  async function handleFileSelected(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
+  async function handleFilesSelected(e: ChangeEvent<HTMLInputElement>) {
+    const selected = e.target.files;
     e.target.value = "";
-    if (!file) return;
+    if (!selected?.length) return;
 
     setUploadError("");
     setMessage("");
     setUploading(true);
-    try {
-      const uploaded = await instructors.uploadFile(file);
-      setFiles((current) => [uploaded, ...current]);
-      setMessage(`הקובץ "${uploaded.originalName}" נשמר בשרת.`);
-    } catch (err) {
-      setUploadError(err instanceof Error ? err.message : "שגיאה בהעלאת הקובץ");
-    } finally {
-      setUploading(false);
+
+    const uploaded: InstructorFile[] = [];
+    const errors: string[] = [];
+
+    for (const file of Array.from(selected)) {
+      try {
+        uploaded.push(await instructors.uploadFile(file));
+      } catch (err) {
+        errors.push(`${file.name}: ${err instanceof Error ? err.message : "שגיאה"}`);
+      }
     }
+
+    if (uploaded.length) {
+      setFiles((current) => [...uploaded, ...current]);
+      setMessage(
+        uploaded.length === 1
+          ? `הקובץ "${uploaded[0].originalName}" נשמר בשרת.`
+          : `${uploaded.length} קבצים נשמרו בשרת.`,
+      );
+    }
+    if (errors.length) {
+      setUploadError(errors.join(" · "));
+    }
+    setUploading(false);
   }
 
   if (!authenticated) {
@@ -205,7 +220,7 @@ export default function Instructors() {
   }
 
   return (
-    <div className="section container" style={{ maxWidth: "760px" }}>
+    <div className="section container instructor-page">
       <div
         style={{
           display: "flex",
@@ -213,14 +228,14 @@ export default function Instructors() {
           gap: "1rem",
           alignItems: "flex-start",
           flexWrap: "wrap",
-          marginBottom: "1.5rem",
+          marginBottom: "1.25rem",
         }}
       >
         <div>
           <h1 style={{ margin: "0 0 0.5rem" }}>רשימות מרקידים</h1>
           <p style={{ color: "var(--text-muted)", margin: 0 }}>
-            אפשר לכתוב כל ריקוד בשורה נפרדת, להדביק טקסט חופשי, או לעלות קובץ
-            (Excel, Word, PDF, CSV וכדומה).
+            אפשר לכתוב כל ריקוד בשורה נפרדת, להדביק טקסט חופשי, או לעלות כמה
+            קבצים (Excel, Word, PDF, CSV וכדומה).
           </p>
         </div>
         <button type="button" className="btn btn-secondary" onClick={handleLogout}>
@@ -228,93 +243,96 @@ export default function Instructors() {
         </button>
       </div>
 
-      <div
-        style={{
-          marginBottom: "1.5rem",
-          padding: "1rem",
-          borderRadius: "8px",
-          background: "var(--step-bg)",
-          border: "1px solid var(--border)",
-        }}
-      >
-        <h2 style={{ margin: "0 0 0.75rem", fontSize: "1.1rem" }}>העלאת קובץ</h2>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".txt,.csv,.xls,.xlsx,.doc,.docx,.pdf,.odt,.json"
-          style={{ display: "none" }}
-          onChange={handleFileSelected}
-        />
-        <button
-          type="button"
-          className="btn btn-primary"
-          disabled={uploading}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          {uploading ? "מעלה..." : "בחירת קובץ להעלאה"}
-        </button>
-        {uploadError && <p className="error-msg" style={{ marginTop: "0.75rem" }}>{uploadError}</p>}
-        {files.length > 0 && (
-          <ul style={{ margin: "0.75rem 0 0", paddingRight: "1.25rem" }}>
-            {files.map((file) => (
-              <li key={file.id} style={{ marginBottom: "0.35rem" }}>
-                {file.originalName} ({formatFileSize(file.sizeBytes)}) — {formatUploadDate(file.uploadedAt)}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
       <form onSubmit={handleSave}>
         {loadingSubmission && <p style={{ color: "var(--text-muted)" }}>טוען רשימות שמורות...</p>}
-        <div className="form-group">
-          <label htmlFor="circle-dances">
-            ריקודי מעגל ({circleCount}/{MAX_DANCES_PER_LIST})
-          </label>
-          <textarea
-            id="circle-dances"
-            value={submission.circleDances}
-            onChange={(e) =>
-              setSubmission((current) => ({
-                ...current,
-                circleDances: e.target.value,
-              }))
-            }
-            rows={10}
-          />
-        </div>
 
-        <div className="form-group">
-          <label htmlFor="couple-dances">
-            ריקודי זוגות ({coupleCount}/{MAX_DANCES_PER_LIST})
-          </label>
-          <textarea
-            id="couple-dances"
-            value={submission.coupleDances}
-            onChange={(e) =>
-              setSubmission((current) => ({
-                ...current,
-                coupleDances: e.target.value,
-              }))
-            }
-            rows={10}
-          />
-        </div>
+        <div className="instructor-form-grid">
+          <div className="instructor-dances">
+            <div className="form-group">
+              <label htmlFor="circle-dances">
+                ריקודי מעגל ({circleCount}/{MAX_DANCES_PER_LIST})
+              </label>
+              <textarea
+                id="circle-dances"
+                value={submission.circleDances}
+                onChange={(e) =>
+                  setSubmission((current) => ({
+                    ...current,
+                    circleDances: e.target.value,
+                  }))
+                }
+                rows={5}
+              />
+            </div>
 
-        <div className="form-group">
-          <label htmlFor="instructor-notes">הערות חופשיות</label>
-          <textarea
-            id="instructor-notes"
-            value={submission.notes}
-            onChange={(e) =>
-              setSubmission((current) => ({
-                ...current,
-                notes: e.target.value,
-              }))
-            }
-            placeholder="מה מאפיין את ההרקדה? אילו ריקודים חשובים במיוחד? מה כדאי לדעת על הקהל, הרמה, האזור או השעות?"
-            rows={6}
-          />
+            <div className="form-group">
+              <label htmlFor="couple-dances">
+                ריקודי זוגות ({coupleCount}/{MAX_DANCES_PER_LIST})
+              </label>
+              <textarea
+                id="couple-dances"
+                value={submission.coupleDances}
+                onChange={(e) =>
+                  setSubmission((current) => ({
+                    ...current,
+                    coupleDances: e.target.value,
+                  }))
+                }
+                rows={5}
+              />
+            </div>
+          </div>
+
+          <aside className="instructor-sidebar">
+            <div className="instructor-panel">
+              <h2>הערות חופשיות</h2>
+              <textarea
+                id="instructor-notes"
+                value={submission.notes}
+                onChange={(e) =>
+                  setSubmission((current) => ({
+                    ...current,
+                    notes: e.target.value,
+                  }))
+                }
+                placeholder="מה מאפיין את ההרקדה? אילו ריקודים חשובים במיוחד? מה כדאי לדעת על הקהל, הרמה, האזור או השעות?"
+                rows={8}
+              />
+            </div>
+
+            <div className="instructor-panel">
+              <h2>העלאת קבצים</h2>
+              <p style={{ margin: "0 0 0.75rem", fontSize: "0.9rem", color: "var(--text-muted)" }}>
+                אפשר לעלות כמה קבצים — למשל אחד למעגלים ואחד לזוגות.
+              </p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept=".txt,.csv,.xls,.xlsx,.doc,.docx,.pdf,.odt,.json"
+                style={{ display: "none" }}
+                onChange={handleFilesSelected}
+              />
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={uploading}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {uploading ? "מעלה..." : "בחירת קבצים להעלאה"}
+              </button>
+              {uploadError && <p className="error-msg" style={{ marginTop: "0.75rem", marginBottom: 0 }}>{uploadError}</p>}
+              {files.length > 0 && (
+                <ul className="instructor-file-list">
+                  {files.map((file) => (
+                    <li key={file.id}>
+                      {file.originalName} ({formatFileSize(file.sizeBytes)}) — {formatUploadDate(file.uploadedAt)}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </aside>
         </div>
 
         {saveError && <p className="error-msg">{saveError}</p>}

@@ -129,6 +129,69 @@ textarea {
   padding: 1.25rem 0 !important;
 }
 
+.instructor-page {
+  max-width: 960px;
+}
+
+.instructor-form-grid {
+  display: grid;
+  grid-template-columns: 1fr minmax(240px, 300px);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.instructor-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.instructor-panel {
+  padding: 1rem;
+  border-radius: 8px;
+  background: var(--step-bg);
+  border: 1px solid var(--border);
+}
+
+.instructor-panel h2 {
+  margin: 0 0 0.65rem;
+  font-size: 1.05rem;
+}
+
+.instructor-panel textarea {
+  width: 100%;
+  min-height: 10rem;
+  resize: vertical;
+}
+
+.instructor-dances .form-group {
+  margin-bottom: 1rem;
+}
+
+.instructor-dances textarea {
+  min-height: 6.5rem;
+}
+
+.instructor-file-list {
+  margin: 0.65rem 0 0;
+  padding-right: 1.1rem;
+  font-size: 0.9rem;
+}
+
+.instructor-file-list li {
+  margin-bottom: 0.35rem;
+}
+
+@media (max-width: 720px) {
+  .instructor-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .instructor-sidebar {
+    order: -1;
+  }
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
