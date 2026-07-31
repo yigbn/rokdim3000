@@ -74,7 +74,7 @@ router.post("/forgot-password", async (req, res) => {
     row.id
   );
   db.close();
-  const baseUrl = process.env.APP_URL || "http://localhost:5173";
+  const baseUrl = process.env.APP_URL || "https://localhost:5173";
   const resetLink = `${baseUrl}/reset-password?token=${reset_token}`;
   const sent = await sendResetPasswordEmail(email.toLowerCase(), resetLink);
   const payload: { message: string; resetLink?: string } = {

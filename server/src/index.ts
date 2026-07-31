@@ -1,5 +1,6 @@
 import "dotenv/config";
 import fs from "node:fs";
+import https from "node:https";
 import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -24,8 +25,13 @@ db.close();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const certDir = path.resolve(__dirname, "../../.certs");
+const httpsOptions = {
+  key: fs.readFileSync(process.env.HTTPS_KEY_PATH ?? path.join(certDir, "localhost-key.pem")),
+  cert: fs.readFileSync(process.env.HTTPS_CERT_PATH ?? path.join(certDir, "localhost-cert.pem")),
+};
 
-app.use(cors({ origin: process.env.CLIENT_ORIGIN || "http://localhost:5173", credentials: true }));
+app.use(cors({ origin: process.env.CLIENT_ORIGIN || "https://localhost:5173", credentials: true }));
 app.use(express.json());
 app.use("/uploads", express.static(uploadsDir));
 
@@ -42,6 +48,6 @@ app.get("/api/health", (_req, res) => {
   res.json({ ok: true });
 });
 
-app.listen(PORT, () => {
-  console.log(`Rokdim 300 server at http://localhost:${PORT}`);
+https.createServer(httpsOptions, app).listen(PORT, () => {
+  console.log(`Rokdim 300 server at https://localhost:${PORT}`);
 });

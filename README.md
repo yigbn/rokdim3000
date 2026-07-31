@@ -27,8 +27,10 @@ cd server && npm run db:init && cd ..
 npm run dev
 ```
 
-- Client: http://localhost:5173  
-- Server API: http://localhost:3000  
+- Client: https://localhost:5173  
+- Server API: https://localhost:3000  
+
+The dev command creates self-signed localhost certificates in `.certs/` if they do not already exist. Your browser may ask you to trust the local certificate the first time you open the app.
 
 Or run separately:
 
@@ -39,7 +41,7 @@ npm run dev:client  # client only, port 5173 (proxies /api and /uploads to 3000)
 
 ## Env (optional)
 
-- **Server:** create `server/.env` with `PORT`, `JWT_SECRET`, `DB_PATH`, `CLIENT_ORIGIN`, `APP_URL` (for reset-password link).
+- **Server:** create `server/.env` with `PORT`, `JWT_SECRET`, `DB_PATH`, `CLIENT_ORIGIN`, `APP_URL` (for reset-password link), and optionally `HTTPS_KEY_PATH` / `HTTPS_CERT_PATH`.
 - **Password reset email:** set `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, and optionally `SMTP_SECURE`, `MAIL_FROM`. If not set, the reset link is returned in the API response (for dev only).
 - **Dance admin:** only user `yben99@gmail.com` can add/edit dances (see `server/src/middleware/admin.ts`).
 - **Client:** uses Vite proxy to `/api` and `/uploads` when running `npm run dev`.

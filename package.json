@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "dev:server": "cd server && npm run dev",
-    "dev:client": "cd client && npm run dev",
+    "certs": "node server/scripts/createLocalCerts.mjs",
+    "dev": "npm run certs && concurrently \"cd server && npm run dev\" \"cd client && npm run dev\"",
+    "dev:server": "npm run certs && cd server && npm run dev",
+    "dev:client": "npm run certs && cd client && npm run dev",
     "build": "npm run build:server && npm run build:client",
     "build:server": "cd server && npm run build",
     "build:client": "cd client && npm run build",

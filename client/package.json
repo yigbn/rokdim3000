@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "predev": "node ../server/scripts/createLocalCerts.mjs",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview"
