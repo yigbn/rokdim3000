@@ -207,6 +207,11 @@ export const admin = {
       headers: adminHeaders(),
       body: { username },
     }),
+  resetInstructorPassword: (username: string) =>
+    request<{ username: string; password: string; message: string }>(
+      `/admin/instructors/${encodeURIComponent(username)}/reset-password`,
+      { method: "POST", headers: adminHeaders() },
+    ),
   listInstructors: () =>
     request<Array<{
       username: string;

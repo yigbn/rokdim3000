@@ -81,4 +81,40 @@ router.post("/instructors", requireAdminToken, (req, res) => {
   });
 });
 
+/** Admin only: set a new password when the instructor forgot the old one (old password cannot be retrieved). */
+router.post("/instructors/:username/reset-password", requireAdminToken, (req, res) => {
+  const raw = req.params.username;
+  const username = normalizeUsername(Array.isArray(raw) ? raw[0] : raw);
+  if (!username || !USERNAME_PATTERN.test(username)) {
+    res.status(400).json({ error: "Invalid username" });
+    return;
+  }
+
+  const db = getDb();
+  const existing = db
+    .prepare("SELECT id FROM instructors WHERE username = ?")
+    .get(username) as { id: number } | undefined;
+  if (!existing) {
+    db.close();
+    res.status(404).json({ error: "Instructor not found" });
+    return;
+  }
+
+  const plainPassword = generateSimplePassword();
+  const passwordHash = bcrypt.hashSync(plainPassword, SALT_ROUNDS);
+  const now = Date.now();
+  db.prepare("UPDATE instructors SET password_hash = ?, updated_at = ? WHERE username = ?").run(
+    passwordHash,
+    now,
+    username,
+  );
+  db.close();
+
+  res.json({
+    username,
+    password: plainPassword,
+    message: "Password reset. Send the new password to the instructor; the old one no longer works.",
+  });
+});
+
 export default router;
