@@ -295,7 +295,6 @@ export default function Instructors() {
                     notes: e.target.value,
                   }))
                 }
-                placeholder="מה מאפיין את ההרקדה? אילו ריקודים חשובים במיוחד? מה כדאי לדעת על הקהל, הרמה, האזור או השעות?"
                 rows={8}
               />
             </div>
