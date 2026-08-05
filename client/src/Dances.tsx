@@ -226,16 +226,107 @@ export default function Dances() {
     }
   }
 
+  function renderRatingPanel() {
+    if (!canRate) {
+      return (
+        <aside className="dances-rating-panel">
+          <p className="dances-rating-panel-hint" style={{ margin: 0 }}>
+            כדי לבחור ריקוד ולדרג — התחברו כרוקדים או כמרקידים.
+          </p>
+          <p style={{ margin: "0.65rem 0 0", fontSize: "0.85rem" }}>
+            מרקידים: <Link to="/instructors">כניסת מרקידים</Link>
+          </p>
+        </aside>
+      );
+    }
+
+    if (!selectedDance) {
+      return (
+        <aside className="dances-rating-panel dances-rating-panel-empty">
+          <p className="dances-rating-panel-hint">לחצו על שורה כדי לבחור ריקוד ולדרג אותו</p>
+          <span className="dances-rating-arrow" aria-hidden>←</span>
+          <p style={{ margin: 0, fontSize: "0.82rem", color: "var(--text-muted)" }}>
+            כמה אתם יודעים / כמה אוהבים לרקוד — הדירוג יופיע כאן
+            {useInstructorRatings && !auth.token && ", כך יחוו גם הרוקדים את הדף"}
+          </p>
+        </aside>
+      );
+    }
+
+    return (
+      <aside className="dances-rating-panel">
+        <h3>דירוג: {selectedDance.name}</h3>
+        <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", margin: "0 0 0.75rem" }}>
+          1 = הרבה מאוד, 5 = מעט מאוד. נשמר אוטומטית.
+        </p>
+        <div className="dances-rating-sliders">
+          <div>
+            <label htmlFor="rating-knowledge">כמה אני יודע את הריקוד</label>
+            <input
+              id="rating-knowledge"
+              type="range"
+              min={1}
+              max={5}
+              step={1}
+              list="dance-rating-ticks"
+              value={ratingKnowledge}
+              onChange={(e) => {
+                setRatingKnowledge(parseInt(e.target.value, 10));
+                scheduleRatingSave();
+              }}
+              style={{ width: "100%" }}
+            />
+            <div className="slider-hint">
+              <span>1 (הרבה מאוד)</span>
+              <span>5 (מעט מאוד)</span>
+            </div>
+            <span className="slider-value">{SLIDER_LABELS[ratingKnowledge]}</span>
+          </div>
+          <div>
+            <label htmlFor="rating-enjoyment">כמה אני אוהב לרקוד את הריקוד</label>
+            <input
+              id="rating-enjoyment"
+              type="range"
+              min={1}
+              max={5}
+              step={1}
+              list="dance-rating-ticks"
+              value={ratingEnjoyment}
+              onChange={(e) => {
+                setRatingEnjoyment(parseInt(e.target.value, 10));
+                scheduleRatingSave();
+              }}
+              style={{ width: "100%" }}
+            />
+            <div className="slider-hint">
+              <span>1 (הרבה מאוד)</span>
+              <span>5 (מעט מאוד)</span>
+            </div>
+            <span className="slider-value">{SLIDER_LABELS[ratingEnjoyment]}</span>
+          </div>
+        </div>
+        <datalist id="dance-rating-ticks">
+          <option value="1" />
+          <option value="2" />
+          <option value="3" />
+          <option value="4" />
+          <option value="5" />
+        </datalist>
+        {ratingSaving && (
+          <p style={{ margin: "0.5rem 0 0", fontSize: "0.82rem", color: "var(--text-muted)" }}>שומר...</p>
+        )}
+      </aside>
+    );
+  }
+
   return (
-    <div className="section container" style={{ maxWidth: 1100 }}>
-      <h1 style={{ marginBottom: "1rem" }}>ריקודים</h1>
-      <p style={{ color: "var(--text-muted)", marginBottom: "1.5rem" }}>
-        רשימת הריקודים. בהמשך נוסיף סינון ודירוג לפי פרמטרים.
-      </p>
+    <div className="section container dances-page" style={{ maxWidth: 1100 }}>
+      <h1>ריקודים</h1>
+      <p className="dances-page-intro">רשימת הריקודים. בהמשך נוסיף סינון ודירוג לפי פרמטרים.</p>
 
       {isAdmin && (
-        <section style={{ marginBottom: "2rem", padding: "1.25rem", background: "var(--vision-bg)", borderRadius: 8 }}>
-          <h2 style={{ margin: "0 0 1rem", fontSize: "1.15rem" }}>הוספת ריקוד</h2>
+        <section className="dances-compact-section" style={{ background: "var(--vision-bg)" }}>
+          <h2 style={{ margin: "0 0 0.65rem", fontSize: "1rem" }}>הוספת ריקוד</h2>
           <form onSubmit={handleAdd}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: "0.75rem", alignItems: "end", flexWrap: "wrap" }} className="form-row">
               <div className="form-group" style={{ marginBottom: 0 }}>
@@ -312,18 +403,18 @@ export default function Dances() {
       )}
 
       {!isAdmin && auth.token && (
-        <section style={{ marginBottom: "2rem", padding: "1.25rem", background: "var(--step-bg)", borderRadius: 8 }}>
-          <h2 style={{ margin: "0 0 0.75rem", fontSize: "1.15rem" }}>דעתכם על רשימת הריקודים</h2>
-          <p style={{ color: "var(--text-muted)", marginBottom: "0.75rem", fontSize: "0.95rem" }}>
+        <section className="dances-compact-section" style={{ background: "var(--step-bg)" }}>
+          <h2 style={{ margin: "0 0 0.5rem", fontSize: "1rem" }}>דעתכם על רשימת הריקודים</h2>
+          <p style={{ color: "var(--text-muted)", marginBottom: "0.5rem", fontSize: "0.85rem" }}>
             מה כדאי שייכנס לרשימה, מה להסיר, וכל הערה אחרת
           </p>
           <textarea
             value={opinionText}
             onChange={(e) => setOpinionText(e.target.value)}
             placeholder="כתבו כאן את דעתכם..."
-            style={{ width: "100%", minHeight: 100, padding: "0.5rem 0.75rem", border: "1px solid var(--border)", borderRadius: 6, fontFamily: "inherit", marginBottom: "0.5rem" }}
+            style={{ width: "100%", minHeight: 72, padding: "0.45rem 0.65rem", border: "1px solid var(--border)", borderRadius: 6, fontFamily: "inherit", marginBottom: "0.5rem", fontSize: "0.88rem" }}
           />
-          <button type="button" className="btn btn-primary" onClick={saveOpinion} disabled={opinionSaving}>
+          <button type="button" className="btn btn-primary" style={{ padding: "0.45rem 0.9rem", fontSize: "0.88rem" }} onClick={saveOpinion} disabled={opinionSaving}>
             {opinionSaving ? "שומר..." : "שמירת דעה"}
           </button>
         </section>
@@ -332,28 +423,22 @@ export default function Dances() {
       {error && <p className="error-msg">{error}</p>}
       {message && <p className="success-msg">{message}</p>}
 
-      {/* Type filter */}
       {!loading && list.length > 0 && canRate && (
-        <p style={{ marginBottom: "0.75rem", fontSize: "0.95rem", color: "var(--text-muted)" }}>
-          לחצו על שורה כדי לבחור ריקוד ולדרג אותו (כמה אתם יודעים / כמה אוהבים לרקוד) — הדירוג יופיע מתחת לטבלה.
-          {useInstructorRatings && !auth.token && " כך יחוו גם הרוקדים את הדף."}
-        </p>
-      )}
-
-      {!loading && list.length > 0 && !canRate && (
-        <p style={{ marginBottom: "0.75rem", fontSize: "0.95rem", color: "var(--text-muted)" }}>
-          כדי לבחור ריקוד ולדרג — התחברו כרוקדים או כמרקידים (מרקידים: <Link to="/instructors">כניסת מרקידים</Link>).
-        </p>
+        <div className="dances-select-banner">
+          לחצו על שורה כדי לבחור ריקוד ולדרג אותו — הדירוג מופיע בפאנל משמאל
+          {useInstructorRatings && !auth.token && " (כך יחוו גם הרוקדים את הדף)"}
+        </div>
       )}
 
       {!loading && list.length > 0 && (
-        <div style={{ marginBottom: "1rem", display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <label style={{ fontWeight: 500 }}>סינון לפי סוג:</label>
+        <div className="dances-filters">
+          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+            <label htmlFor="dance-type-filter">סוג:</label>
             <select
+              id="dance-type-filter"
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              style={{ padding: "0.4rem 0.75rem", border: "1px solid var(--border)", borderRadius: 6, minWidth: 140 }}
+              style={{ minWidth: 120 }}
             >
               <option value="">הכל</option>
               {DANCE_TYPE_OPTIONS.map((o) => (
@@ -361,24 +446,26 @@ export default function Dances() {
               ))}
             </select>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <label style={{ fontWeight: 500 }}>שם (תחילת מחרוזת):</label>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+            <label htmlFor="dance-name-filter">שם:</label>
             <input
+              id="dance-name-filter"
               type="text"
               value={nameFilter}
               onChange={(e) => setNameFilter(e.target.value)}
-              placeholder="התחלה של שם..."
-              style={{ padding: "0.4rem 0.75rem", border: "1px solid var(--border)", borderRadius: 6, minWidth: 120 }}
+              placeholder="תחילת שם..."
+              style={{ minWidth: 100 }}
             />
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <label style={{ fontWeight: 500 }}>יוצר (תחילת מחרוזת):</label>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+            <label htmlFor="dance-creator-filter">יוצר:</label>
             <input
+              id="dance-creator-filter"
               type="text"
               value={creatorFilter}
               onChange={(e) => setCreatorFilter(e.target.value)}
-              placeholder="התחלה של יוצר..."
-              style={{ padding: "0.4rem 0.75rem", border: "1px solid var(--border)", borderRadius: 6, minWidth: 120 }}
+              placeholder="תחילת יוצר..."
+              style={{ minWidth: 100 }}
             />
           </div>
         </div>
@@ -431,176 +518,136 @@ export default function Dances() {
       {loading ? (
         <p>טוען...</p>
       ) : (
-        <>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ borderBottom: "2px solid var(--border)" }}>
-                  <th style={{ textAlign: "right", padding: "0.5rem" }}>שם</th>
-                  <th style={{ textAlign: "right", padding: "0.5rem" }}>סוג</th>
-                  <th style={{ textAlign: "right", padding: "0.5rem" }}>יוצר</th>
-                  <th style={{ textAlign: "right", padding: "0.5rem" }}>שנה</th>
-                  <th style={{ textAlign: "right", padding: "0.5rem" }}>קטגוריה</th>
-                  <th style={{ textAlign: "right", padding: "0.5rem" }}>קושי</th>
-                  <th style={{ textAlign: "right", padding: "0.5rem" }}>יוטיוב</th>
-                  {isAdmin && <th style={{ textAlign: "right", padding: "0.5rem", position: "sticky", right: 0, background: "var(--surface)", minWidth: 140, boxShadow: "-4px 0 8px rgba(0,0,0,0.06)" }}>פעולות</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedList.map((d) => (
-                  <tr
-                    key={d.id}
-                    style={{
-                      borderBottom: "1px solid var(--border)",
-                      background: selectedDanceId === d.id ? "var(--vision-bg)" : undefined,
-                      cursor: canRate && editingId !== d.id ? "pointer" : undefined,
-                    }}
-                    onClick={() => handleRowClick(d)}
-                  >
-                    {editingId === d.id ? (
-                      <td colSpan={isAdmin ? 8 : 7} style={{ padding: "0.5rem", background: "var(--vision-bg)", fontWeight: 500 }}>
-                        עורכים: {form.name} — לחצו "ביטול" או שמרו למטה
-                      </td>
-                    ) : (
-                      <>
-                        <td style={{ padding: "0.5rem" }}>{d.name}</td>
-                        <td style={{ padding: "0.5rem" }}>{getTypeLabel(d.type)}</td>
-                        <td style={{ padding: "0.5rem" }}>{d.creator ?? "—"}</td>
-                        <td style={{ padding: "0.5rem" }}>{d.yearOfCreation ?? "—"}</td>
-                        <td style={{ padding: "0.5rem" }}>{d.category ?? "—"}</td>
-                        <td style={{ padding: "0.5rem" }}>{d.difficultyLevel ?? "—"}</td>
-                        <td style={{ padding: "0.5rem" }}>
-                          {d.youtubeLink ? (
-                            <a href={d.youtubeLink} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>קישור</a>
-                          ) : (
-                            "—"
-                          )}
-                        </td>
-                        {isAdmin && (
-                          <td style={{ padding: "0.5rem", position: "sticky", right: 0, background: selectedDanceId === d.id ? "var(--vision-bg)" : "var(--surface)", minWidth: 140, boxShadow: "-4px 0 8px rgba(0,0,0,0.06)" }} onClick={(e) => e.stopPropagation()}>
-                            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "nowrap" }}>
-                              <button type="button" className="btn btn-secondary" style={{ padding: "0.35rem 0.75rem", fontSize: "0.9rem" }} onClick={() => startEdit(d)}>
-                                עריכה
-                              </button>
-                              <button type="button" className="btn btn-secondary" style={{ padding: "0.35rem 0.75rem", fontSize: "0.9rem", color: "var(--error, #c00)" }} onClick={() => handleDelete(d)}>
-                                מחיקה
-                              </button>
-                            </div>
-                          </td>
-                        )}
-                      </>
+        <div className="dances-main-grid">
+          <div>
+            <div className="dances-table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>שם</th>
+                    <th>סוג</th>
+                    <th>יוצר</th>
+                    <th>שנה</th>
+                    <th>קטגוריה</th>
+                    <th>קושי</th>
+                    <th>יוטיוב</th>
+                    {isAdmin && (
+                      <th style={{ position: "sticky", right: 0, background: "var(--surface)", minWidth: 120, boxShadow: "-4px 0 8px rgba(0,0,0,0.06)" }}>
+                        פעולות
+                      </th>
                     )}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            {filteredList.length === 0 && <p style={{ color: "var(--text-muted)", marginTop: "1rem" }}>אין ריקודים בסינון זה.</p>}
+                </thead>
+                <tbody>
+                  {paginatedList.map((d) => (
+                    <tr
+                      key={d.id}
+                      style={{
+                        background: selectedDanceId === d.id ? "var(--vision-bg)" : undefined,
+                        cursor: canRate && editingId !== d.id ? "pointer" : undefined,
+                      }}
+                      onClick={() => handleRowClick(d)}
+                    >
+                      {editingId === d.id ? (
+                        <td colSpan={isAdmin ? 8 : 7} style={{ background: "var(--vision-bg)", fontWeight: 500 }}>
+                          עורכים: {form.name} — לחצו "ביטול" או שמרו למטה
+                        </td>
+                      ) : (
+                        <>
+                          <td>{d.name}</td>
+                          <td>{getTypeLabel(d.type)}</td>
+                          <td>{d.creator ?? "—"}</td>
+                          <td>{d.yearOfCreation ?? "—"}</td>
+                          <td>{d.category ?? "—"}</td>
+                          <td>{d.difficultyLevel ?? "—"}</td>
+                          <td>
+                            {d.youtubeLink ? (
+                              <a href={d.youtubeLink} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>קישור</a>
+                            ) : (
+                              "—"
+                            )}
+                          </td>
+                          {isAdmin && (
+                            <td
+                              style={{
+                                position: "sticky",
+                                right: 0,
+                                background: selectedDanceId === d.id ? "var(--vision-bg)" : "var(--surface)",
+                                minWidth: 120,
+                                boxShadow: "-4px 0 8px rgba(0,0,0,0.06)",
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <div style={{ display: "flex", gap: "0.35rem", flexWrap: "nowrap" }}>
+                                <button type="button" className="btn btn-secondary" style={{ padding: "0.25rem 0.55rem", fontSize: "0.78rem" }} onClick={() => startEdit(d)}>
+                                  עריכה
+                                </button>
+                                <button type="button" className="btn btn-secondary" style={{ padding: "0.25rem 0.55rem", fontSize: "0.78rem", color: "var(--error, #c00)" }} onClick={() => handleDelete(d)}>
+                                  מחיקה
+                                </button>
+                              </div>
+                            </td>
+                          )}
+                        </>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {filteredList.length === 0 && <p style={{ color: "var(--text-muted)", marginTop: "0.65rem", fontSize: "0.88rem" }}>אין ריקודים בסינון זה.</p>}
+            </div>
+
+            {filteredList.length > 0 && (
+              <div className="dances-pagination">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  style={{ padding: "0.3rem 0.65rem", fontSize: "0.82rem" }}
+                  disabled={page === 0}
+                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                >
+                  הקודם
+                </button>
+                <span style={{ color: "var(--text-muted)" }}>
+                  עמוד {page + 1} מתוך {totalPages} ({filteredList.length} ריקודים)
+                </span>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  style={{ padding: "0.3rem 0.65rem", fontSize: "0.82rem" }}
+                  disabled={page >= totalPages - 1}
+                  onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                >
+                  הבא
+                </button>
+                {totalPages > 1 && (
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                    <label htmlFor="dance-page-input" style={{ fontWeight: 600 }}>עמוד:</label>
+                    <input
+                      id="dance-page-input"
+                      type="number"
+                      min={1}
+                      max={totalPages}
+                      value={pageInput}
+                      onChange={(e) => setPageInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), goToPage())}
+                      placeholder={String(page + 1)}
+                      style={{ width: 48, padding: "0.25rem 0.4rem", border: "1px solid var(--border)", borderRadius: 6, textAlign: "center", fontSize: "0.82rem" }}
+                    />
+                    <button type="button" className="btn btn-secondary" style={{ padding: "0.25rem 0.55rem", fontSize: "0.78rem" }} onClick={goToPage}>
+                      עבור
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
-          {filteredList.length > 0 && (
-            <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginTop: "1rem", flexWrap: "wrap" }}>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                disabled={page === 0}
-                onClick={() => setPage((p) => Math.max(0, p - 1))}
-              >
-                הקודם
-              </button>
-              <span style={{ color: "var(--text-muted)" }}>
-                עמוד {page + 1} מתוך {totalPages} ({filteredList.length} ריקודים)
-              </span>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                disabled={page >= totalPages - 1}
-                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-              >
-                הבא
-              </button>
-              {totalPages > 1 && (
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <label style={{ fontWeight: 500, fontSize: "0.9rem" }}>עבור לעמוד:</label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={totalPages}
-                    value={pageInput}
-                    onChange={(e) => setPageInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), goToPage())}
-                    placeholder={String(page + 1)}
-                    style={{ width: 56, padding: "0.35rem 0.5rem", border: "1px solid var(--border)", borderRadius: 6, textAlign: "center" }}
-                  />
-                  <button type="button" className="btn btn-secondary" style={{ padding: "0.35rem 0.75rem", fontSize: "0.9rem" }} onClick={goToPage}>
-                    עבור
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {canRate && selectedDance && (
-            <section style={{ marginTop: "2rem", padding: "1.25rem", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8 }}>
-              <h3 style={{ margin: "0 0 1rem", fontSize: "1.1rem" }}>דירוג: {selectedDance.name}</h3>
-              <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginBottom: "1rem" }}>
-                בחרו ברמת הידיעה וההנאה (1 = הרבה מאוד, 5 = מעט מאוד). הדירוג נשמר אוטומטית.
-              </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", maxWidth: 400 }}>
-                <div>
-                  <label style={{ display: "block", marginBottom: "0.35rem", fontWeight: 500 }}>
-                    כמה אני יודע את הריקוד
-                  </label>
-                  <input
-                    type="range"
-                    min={1}
-                    max={5}
-                    step={1}
-                    list="dance-rating-ticks"
-                    value={ratingKnowledge}
-                    onChange={(e) => { setRatingKnowledge(parseInt(e.target.value, 10)); scheduleRatingSave(); }}
-                    style={{ width: "100%", marginBottom: "0.25rem" }}
-                  />
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.82rem", color: "var(--text-muted)", direction: "ltr", marginBottom: "0.2rem" }}>
-                    <span>1 (הרבה מאוד)</span>
-                    <span>5 (מעט מאוד)</span>
-                  </div>
-                  <span style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>{SLIDER_LABELS[ratingKnowledge]}</span>
-                </div>
-                <div>
-                  <label style={{ display: "block", marginBottom: "0.35rem", fontWeight: 500 }}>
-                    כמה אני אוהב לרקוד את הריקוד
-                  </label>
-                  <input
-                    type="range"
-                    min={1}
-                    max={5}
-                    step={1}
-                    list="dance-rating-ticks"
-                    value={ratingEnjoyment}
-                    onChange={(e) => { setRatingEnjoyment(parseInt(e.target.value, 10)); scheduleRatingSave(); }}
-                    style={{ width: "100%", marginBottom: "0.25rem" }}
-                  />
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.82rem", color: "var(--text-muted)", direction: "ltr", marginBottom: "0.2rem" }}>
-                    <span>1 (הרבה מאוד)</span>
-                    <span>5 (מעט מאוד)</span>
-                  </div>
-                  <span style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>{SLIDER_LABELS[ratingEnjoyment]}</span>
-                </div>
-              </div>
-              <datalist id="dance-rating-ticks">
-                <option value="1" />
-                <option value="2" />
-                <option value="3" />
-                <option value="4" />
-                <option value="5" />
-              </datalist>
-              {ratingSaving && <p style={{ marginTop: "0.5rem", fontSize: "0.9rem", color: "var(--text-muted)" }}>שומר...</p>}
-            </section>
-          )}
-        </>
+          {list.length > 0 && renderRatingPanel()}
+        </div>
       )}
 
-      <p style={{ marginTop: "2rem" }}>
+      <p style={{ marginTop: "1.25rem", fontSize: "0.88rem" }}>
         <Link to="/">חזרה לדף הבית</Link>
       </p>
     </div>
