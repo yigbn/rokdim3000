@@ -189,9 +189,51 @@ textarea {
   font-size: 1.05rem;
 }
 
+.instructor-page h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.45rem;
+}
+
+.instructor-page-intro {
+  color: var(--text-muted);
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.instructor-page-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  margin-bottom: 0.85rem;
+}
+
+.instructor-page-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.instructor-upload-success {
+  margin: 0.65rem 0 0;
+  padding: 0.55rem 0.65rem;
+  border-radius: 6px;
+  background: rgba(46, 125, 50, 0.12);
+  color: var(--success);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.instructor-upload-empty {
+  margin: 0.65rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
 .instructor-panel textarea {
   width: 100%;
-  min-height: 10rem;
+  min-height: 7rem;
   resize: vertical;
 }
 

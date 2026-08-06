@@ -218,6 +218,12 @@ router.get("/uploads", requireAdminToken, (_req, res) => {
 });
 
 router.post("/files", requireInstructorToken, (req: InstructorTokenRequest, res) => {
+  const instructorUsername = req.instructorUsername;
+  if (!instructorUsername) {
+    res.status(401).json({ error: "נדרשת כניסת מרקיד" });
+    return;
+  }
+
   instructorFileUpload.single("file")(req, res, (err) => {
     if (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE") {
       res.status(400).json({ error: "הקובץ גדול מדי (עד 15MB)" });
@@ -234,28 +240,41 @@ router.post("/files", requireInstructorToken, (req: InstructorTokenRequest, res)
       return;
     }
 
-    const db = getDb();
-    const now = Date.now();
-    const result = db
-      .prepare(
-        "INSERT INTO instructor_files (username, original_name, stored_path, mime_type, size_bytes, uploaded_at) VALUES (?, ?, ?, ?, ?, ?)",
-      )
-      .run(
-        req.instructorUsername,
-        uploaded.originalname,
-        uploaded.path,
-        uploaded.mimetype || null,
-        uploaded.size,
-        now,
-      );
-    const row = db
-      .prepare(
-        "SELECT id, username, original_name, stored_path, mime_type, size_bytes, uploaded_at FROM instructor_files WHERE id = ?",
-      )
-      .get(Number(result.lastInsertRowid)) as InstructorFileRow;
-    db.close();
+    try {
+      const db = getDb();
+      const now = Date.now();
+      const result = db
+        .prepare(
+          "INSERT INTO instructor_files (username, original_name, stored_path, mime_type, size_bytes, uploaded_at) VALUES (?, ?, ?, ?, ?, ?)",
+        )
+        .run(
+          instructorUsername,
+          uploaded.originalname,
+          uploaded.path,
+          uploaded.mimetype || null,
+          uploaded.size,
+          now,
+        );
+      const row = db
+        .prepare(
+          "SELECT id, username, original_name, stored_path, mime_type, size_bytes, uploaded_at FROM instructor_files WHERE id = ?",
+        )
+        .get(Number(result.lastInsertRowid)) as InstructorFileRow | undefined;
+      db.close();
 
-    res.status(201).json(mapInstructorFile(row));
+      if (!row) {
+        res.status(500).json({ error: "הקובץ נשמר אך לא ניתן היה לאמת את השמירה" });
+        return;
+      }
+
+      res.status(201).json(mapInstructorFile(row));
+    } catch (e) {
+      console.error("Instructor file upload failed:", e);
+      if (uploaded.path && fs.existsSync(uploaded.path)) {
+        fs.unlinkSync(uploaded.path);
+      }
+      res.status(500).json({ error: "שגיאה בשמירת הקובץ בשרת" });
+    }
   });
 });
 

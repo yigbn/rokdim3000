@@ -53,7 +53,8 @@ export default function Instructors() {
   const [loadingSubmission, setLoadingSubmission] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
+  const [saveMessage, setSaveMessage] = useState("");
+  const [uploadMessage, setUploadMessage] = useState("");
   const [saveError, setSaveError] = useState("");
   const [uploadError, setUploadError] = useState("");
 
@@ -65,11 +66,10 @@ export default function Instructors() {
     setSaveError("");
     setUploadError("");
 
-    Promise.all([instructors.getSubmission(), instructors.getFiles()])
-      .then(([data, uploadedFiles]) => {
-        if (ignore) return;
-        setSubmission(toSubmissionForm(data));
-        setFiles(uploadedFiles);
+    instructors
+      .getSubmission()
+      .then((data) => {
+        if (!ignore) setSubmission(toSubmissionForm(data));
       })
       .catch((err) => {
         if (ignore) return;
@@ -79,6 +79,16 @@ export default function Instructors() {
       })
       .finally(() => {
         if (!ignore) setLoadingSubmission(false);
+      });
+
+    instructors
+      .getFiles()
+      .then((uploadedFiles) => {
+        if (!ignore) setFiles(uploadedFiles);
+      })
+      .catch((err) => {
+        if (ignore) return;
+        setUploadError(err instanceof Error ? err.message : "לא ניתן לטעון רשימת קבצים");
       });
 
     return () => {
@@ -117,7 +127,8 @@ export default function Instructors() {
     setAuthenticated(false);
     setUsername("");
     setPassword("");
-    setMessage("");
+    setSaveMessage("");
+    setUploadMessage("");
     setSaveError("");
     setUploadError("");
     setFiles([]);
@@ -125,7 +136,7 @@ export default function Instructors() {
 
   async function handleSave(e: FormEvent) {
     e.preventDefault();
-    setMessage("");
+    setSaveMessage("");
     setSaveError("");
 
     if (circleCount > MAX_DANCES_PER_LIST || coupleCount > MAX_DANCES_PER_LIST) {
@@ -137,12 +148,18 @@ export default function Instructors() {
     try {
       const saved = await instructors.saveSubmission(submission);
       setSubmission(toSubmissionForm(saved));
-      setMessage("הרשימות נשמרו בשרת. אפשר לחזור ולעדכן אותן בהמשך.");
+      setSaveMessage("הרשימות נשמרו בשרת. אפשר לחזור ולעדכן אותן בהמשך.");
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : "שגיאה בשמירה");
     } finally {
       setSaving(false);
     }
+  }
+
+  async function refreshFiles() {
+    const uploadedFiles = await instructors.getFiles();
+    setFiles(uploadedFiles);
+    return uploadedFiles;
   }
 
   async function handleFilesSelected(e: ChangeEvent<HTMLInputElement>) {
@@ -151,7 +168,7 @@ export default function Instructors() {
     if (!selected?.length) return;
 
     setUploadError("");
-    setMessage("");
+    setUploadMessage("");
     setUploading(true);
 
     const uploaded: InstructorFile[] = [];
@@ -165,14 +182,27 @@ export default function Instructors() {
       }
     }
 
-    if (uploaded.length) {
-      setFiles((current) => [...uploaded, ...current]);
-      setMessage(
-        uploaded.length === 1
-          ? `הקובץ "${uploaded[0].originalName}" נשמר בשרת.`
-          : `${uploaded.length} קבצים נשמרו בשרת.`,
-      );
+    try {
+      const confirmed = await refreshFiles();
+      if (uploaded.length) {
+        setUploadMessage(
+          uploaded.length === 1
+            ? `✓ הקובץ "${uploaded[0].originalName}" עלה בהצלחה (${confirmed.length} קבצים בסך הכל)`
+            : `✓ ${uploaded.length} קבצים עלו בהצלחה (${confirmed.length} קבצים בסך הכל)`,
+        );
+      }
+    } catch (err) {
+      if (uploaded.length) {
+        setFiles((current) => [...uploaded, ...current]);
+        setUploadMessage(
+          uploaded.length === 1
+            ? `✓ הקובץ "${uploaded[0].originalName}" עלה`
+            : `✓ ${uploaded.length} קבצים עלו`,
+        );
+      }
+      errors.push(err instanceof Error ? err.message : "לא ניתן לרענן רשימת קבצים");
     }
+
     if (errors.length) {
       setUploadError(errors.join(" · "));
     }
@@ -221,30 +251,28 @@ export default function Instructors() {
 
   return (
     <div className="section container instructor-page">
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          gap: "1rem",
-          alignItems: "flex-start",
-          flexWrap: "wrap",
-          marginBottom: "1.25rem",
-        }}
-      >
+      <div className="instructor-page-header">
         <div>
-          <h1 style={{ margin: "0 0 0.5rem" }}>רשימות מרקידים</h1>
-          <p style={{ color: "var(--text-muted)", margin: 0 }}>
-            אפשר לכתוב כל ריקוד בשורה נפרדת, להדביק טקסט חופשי, או לעלות כמה
-            קבצים (Excel, Word, PDF, CSV וכדומה).
+          <h1>רשימות מרקידים</h1>
+          <p className="instructor-page-intro">
+            אפשר לכתוב כל ריקוד בשורה נפרדת, להדביק טקסט חופשי, או לעלות כמה קבצים.
           </p>
         </div>
-        <button type="button" className="btn btn-secondary" onClick={handleLogout}>
-          יציאה
-        </button>
+        <div className="instructor-page-actions">
+          <button type="submit" form="instructor-submission-form" className="btn btn-primary" disabled={saving || loadingSubmission}>
+            {saving ? "שומר..." : "שמירת הרשימות"}
+          </button>
+          <button type="button" className="btn btn-secondary" onClick={handleLogout}>
+            יציאה
+          </button>
+        </div>
       </div>
 
-      <form onSubmit={handleSave}>
-        {loadingSubmission && <p style={{ color: "var(--text-muted)" }}>טוען רשימות שמורות...</p>}
+      {saveError && <p className="error-msg">{saveError}</p>}
+      {saveMessage && <p className="success-msg">{saveMessage}</p>}
+
+      <form id="instructor-submission-form" onSubmit={handleSave}>
+        {loadingSubmission && <p style={{ color: "var(--text-muted)", marginTop: 0 }}>טוען רשימות שמורות...</p>}
 
         <div className="instructor-form-grid">
           <div className="instructor-dances">
@@ -295,20 +323,19 @@ export default function Instructors() {
                     notes: e.target.value,
                   }))
                 }
-                rows={8}
+                rows={6}
               />
             </div>
 
             <div className="instructor-panel">
-              <h2>העלאת קבצים</h2>
-              <p style={{ margin: "0 0 0.75rem", fontSize: "0.9rem", color: "var(--text-muted)" }}>
+              <h2>העלאת קבצים {files.length > 0 && `(${files.length})`}</h2>
+              <p style={{ margin: "0 0 0.65rem", fontSize: "0.85rem", color: "var(--text-muted)" }}>
                 אפשר לעלות כמה קבצים — למשל אחד למעגלים ואחד לזוגות.
               </p>
               <input
                 ref={fileInputRef}
                 type="file"
                 multiple
-                accept=".txt,.csv,.xls,.xlsx,.doc,.docx,.pdf,.odt,.json"
                 style={{ display: "none" }}
                 onChange={handleFilesSelected}
               />
@@ -320,25 +347,22 @@ export default function Instructors() {
               >
                 {uploading ? "מעלה..." : "בחירת קבצים להעלאה"}
               </button>
-              {uploadError && <p className="error-msg" style={{ marginTop: "0.75rem", marginBottom: 0 }}>{uploadError}</p>}
-              {files.length > 0 && (
+              {uploadMessage && <p className="instructor-upload-success">{uploadMessage}</p>}
+              {uploadError && <p className="error-msg" style={{ marginTop: "0.65rem", marginBottom: 0 }}>{uploadError}</p>}
+              {files.length > 0 ? (
                 <ul className="instructor-file-list">
                   {files.map((file) => (
                     <li key={file.id}>
-                      {file.originalName} ({formatFileSize(file.sizeBytes)}) — {formatUploadDate(file.uploadedAt)}
+                      ✓ {file.originalName} ({formatFileSize(file.sizeBytes)}) — {formatUploadDate(file.uploadedAt)}
                     </li>
                   ))}
                 </ul>
+              ) : (
+                !uploading && <p className="instructor-upload-empty">עדיין לא הועלו קבצים</p>
               )}
             </div>
           </aside>
         </div>
-
-        {saveError && <p className="error-msg">{saveError}</p>}
-        {message && <p className="success-msg">{message}</p>}
-        <button type="submit" className="btn btn-primary" style={{ marginTop: "1rem" }} disabled={saving}>
-          {saving ? "שומר..." : "שמירת הרשימות"}
-        </button>
       </form>
     </div>
   );
