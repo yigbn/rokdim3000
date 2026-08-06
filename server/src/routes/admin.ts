@@ -25,6 +25,14 @@ type InstructorContactRow = {
   updated_at: number;
 };
 
+type InstructorContactInput = {
+  fullName: string;
+  phone: string;
+  status: InstructorContactStatus;
+  source: string;
+  notes: string;
+};
+
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
@@ -62,6 +70,48 @@ function mapInstructorContact(row: InstructorContactRow) {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
+}
+
+function parseInstructorContactInput(value: unknown): { contact: InstructorContactInput } | { error: string } {
+  const body = value as {
+    fullName?: unknown;
+    phone?: unknown;
+    status?: unknown;
+    source?: unknown;
+    notes?: unknown;
+  };
+
+  const fullName = cleanText(body.fullName);
+  const phone = cleanText(body.phone);
+  const status = parseInstructorContactStatus(body.status);
+  const source = cleanText(body.source);
+  const notes = cleanText(body.notes);
+
+  if (!fullName) return { error: "Full name required" };
+  if (!phone) return { error: "Phone required" };
+  if (fullName.length > 160) return { error: "Full name is too long" };
+  if (phone.length > 40) return { error: "Phone is too long" };
+  if (source.length > 500 || notes.length > 2000) return { error: "Source or notes are too long" };
+
+  return { contact: { fullName, phone, status, source, notes } };
+}
+
+function insertInstructorContact(
+  db: ReturnType<typeof getDb>,
+  contact: InstructorContactInput,
+  adminEmail: string | null,
+): InstructorContactRow {
+  const now = Date.now();
+  const result = db
+    .prepare(
+      "INSERT INTO instructor_contacts (full_name, phone, status, source, notes, created_by_admin_email, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    )
+    .run(contact.fullName, contact.phone, contact.status, contact.source, contact.notes, adminEmail, now, now);
+  return db
+    .prepare(
+      "SELECT id, full_name, phone, status, source, notes, created_by_admin_email, created_at, updated_at FROM instructor_contacts WHERE id = ?",
+    )
+    .get(Number(result.lastInsertRowid)) as InstructorContactRow;
 }
 
 router.post("/login", (req, res) => {
@@ -212,56 +262,58 @@ router.get("/instructor-contacts/:id", requireAdminToken, (req, res) => {
 
 /** Admin only: add a contact lead for an active instructor or instructor-course graduate. */
 router.post("/instructor-contacts", requireAdminToken, (req: AdminTokenRequest, res) => {
-  const { fullName, phone, status, source, notes } = req.body as {
-    fullName?: unknown;
-    phone?: unknown;
-    status?: unknown;
-    source?: unknown;
-    notes?: unknown;
-  };
-
-  const nextFullName = cleanText(fullName);
-  const nextPhone = cleanText(phone);
-  const nextStatus = parseInstructorContactStatus(status);
-  const nextSource = cleanText(source);
-  const nextNotes = cleanText(notes);
-
-  if (!nextFullName) {
-    res.status(400).json({ error: "Full name required" });
-    return;
-  }
-  if (!nextPhone) {
-    res.status(400).json({ error: "Phone required" });
-    return;
-  }
-  if (nextFullName.length > 160) {
-    res.status(400).json({ error: "Full name is too long" });
-    return;
-  }
-  if (nextPhone.length > 40) {
-    res.status(400).json({ error: "Phone is too long" });
-    return;
-  }
-  if (nextSource.length > 500 || nextNotes.length > 2000) {
-    res.status(400).json({ error: "Source or notes are too long" });
+  const parsed = parseInstructorContactInput(req.body);
+  if ("error" in parsed) {
+    res.status(400).json({ error: parsed.error });
     return;
   }
 
-  const now = Date.now();
   const db = getDb();
-  const result = db
-    .prepare(
-      "INSERT INTO instructor_contacts (full_name, phone, status, source, notes, created_by_admin_email, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    )
-    .run(nextFullName, nextPhone, nextStatus, nextSource, nextNotes, req.adminEmail ?? null, now, now);
-  const row = db
-    .prepare(
-      "SELECT id, full_name, phone, status, source, notes, created_by_admin_email, created_at, updated_at FROM instructor_contacts WHERE id = ?",
-    )
-    .get(Number(result.lastInsertRowid)) as InstructorContactRow;
+  const row = insertInstructorContact(db, parsed.contact, req.adminEmail ?? null);
   db.close();
 
   res.status(201).json(mapInstructorContact(row));
+});
+
+/** Admin only: bulk import contact leads from a reviewed public-source list. */
+router.post("/instructor-contacts/bulk", requireAdminToken, (req: AdminTokenRequest, res) => {
+  const contacts = Array.isArray(req.body)
+    ? req.body
+    : Array.isArray((req.body as { contacts?: unknown }).contacts)
+      ? (req.body as { contacts: unknown[] }).contacts
+      : null;
+
+  if (!contacts) {
+    res.status(400).json({ error: "Expected an array or { contacts: [...] }" });
+    return;
+  }
+  if (contacts.length === 0) {
+    res.status(400).json({ error: "At least one contact is required" });
+    return;
+  }
+  if (contacts.length > 500) {
+    res.status(400).json({ error: "Bulk import supports up to 500 contacts" });
+    return;
+  }
+
+  const parsedContacts: InstructorContactInput[] = [];
+  for (const [index, contact] of contacts.entries()) {
+    const parsed = parseInstructorContactInput(contact);
+    if ("error" in parsed) {
+      res.status(400).json({ error: `Contact ${index + 1}: ${parsed.error}` });
+      return;
+    }
+    parsedContacts.push(parsed.contact);
+  }
+
+  const db = getDb();
+  const insertAll = db.transaction((values: InstructorContactInput[]) =>
+    values.map((contact) => insertInstructorContact(db, contact, req.adminEmail ?? null)),
+  );
+  const rows = insertAll(parsedContacts);
+  db.close();
+
+  res.status(201).json({ createdCount: rows.length, contacts: rows.map(mapInstructorContact) });
 });
 
 export default router;

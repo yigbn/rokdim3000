@@ -291,6 +291,12 @@ export const admin = {
       headers: adminHeaders(),
       body: data,
     }),
+  bulkCreateInstructorContacts: (contacts: InstructorContactInput[]) =>
+    request<{ createdCount: number; contacts: InstructorContact[] }>("/admin/instructor-contacts/bulk", {
+      method: "POST",
+      headers: adminHeaders(),
+      body: { contacts },
+    }),
 };
 
 export const instructors = {
