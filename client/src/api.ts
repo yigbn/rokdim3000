@@ -166,6 +166,28 @@ export interface InstructorFile {
   uploadedAt: number;
 }
 
+export type InstructorContactStatus = "unknown" | "active" | "course_graduate" | "inactive";
+
+export interface InstructorContact {
+  id: number;
+  fullName: string;
+  phone: string;
+  status: InstructorContactStatus;
+  source: string;
+  notes: string;
+  createdByAdminEmail: string | null;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface InstructorContactInput {
+  fullName: string;
+  phone: string;
+  status?: InstructorContactStatus;
+  source?: string;
+  notes?: string;
+}
+
 const ADMIN_TOKEN_KEY = "rokdim300_admin_token";
 const INSTRUCTOR_TOKEN_KEY = "rokdim300_instructor_token";
 
@@ -249,6 +271,25 @@ export const admin = {
     }>(`/instructors/${encodeURIComponent(username)}/files/${fileId}`, {
       method: "DELETE",
       headers: adminHeaders(),
+    }),
+  listInstructorContacts: (params?: { q?: string; limit?: number }) => {
+    const search = new URLSearchParams();
+    if (params?.q) search.set("q", params.q);
+    if (params?.limit) search.set("limit", String(params.limit));
+    const suffix = search.toString() ? `?${search.toString()}` : "";
+    return request<InstructorContact[]>(`/admin/instructor-contacts${suffix}`, {
+      headers: adminHeaders(),
+    });
+  },
+  getInstructorContact: (id: number) =>
+    request<InstructorContact>(`/admin/instructor-contacts/${encodeURIComponent(id)}`, {
+      headers: adminHeaders(),
+    }),
+  createInstructorContact: (data: InstructorContactInput) =>
+    request<InstructorContact>("/admin/instructor-contacts", {
+      method: "POST",
+      headers: adminHeaders(),
+      body: data,
     }),
 };
 

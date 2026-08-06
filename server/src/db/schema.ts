@@ -95,13 +95,28 @@ export function initDb(db: Database.Database): void {
       uploaded_at INTEGER NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS instructor_contacts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      full_name TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'unknown',
+      source TEXT NOT NULL DEFAULT '',
+      notes TEXT NOT NULL DEFAULT '',
+      created_by_admin_email TEXT,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     CREATE INDEX IF NOT EXISTS idx_users_reset_token ON users(reset_token);
     CREATE INDEX IF NOT EXISTS idx_instructors_username ON instructors(username);
     CREATE INDEX IF NOT EXISTS idx_instructor_files_username ON instructor_files(username);
+    CREATE INDEX IF NOT EXISTS idx_instructor_contacts_full_name ON instructor_contacts(full_name);
+    CREATE INDEX IF NOT EXISTS idx_instructor_contacts_phone ON instructor_contacts(phone);
   `);
   migrateDancesTable(db);
   migrateInstructorAuth(db);
+  migrateInstructorContacts(db);
 }
 
 /** Add creator and year_of_creation to dances if missing (for existing DBs). */
@@ -167,5 +182,24 @@ export function migrateInstructorAuth(db: Database.Database): void {
       uploaded_at INTEGER NOT NULL
     );
     CREATE INDEX IF NOT EXISTS idx_instructor_files_username ON instructor_files(username);
+  `);
+}
+
+/** Admin-maintained contact leads for active instructors or instructor-course graduates. */
+export function migrateInstructorContacts(db: Database.Database): void {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS instructor_contacts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      full_name TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'unknown',
+      source TEXT NOT NULL DEFAULT '',
+      notes TEXT NOT NULL DEFAULT '',
+      created_by_admin_email TEXT,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_instructor_contacts_full_name ON instructor_contacts(full_name);
+    CREATE INDEX IF NOT EXISTS idx_instructor_contacts_phone ON instructor_contacts(phone);
   `);
 }
