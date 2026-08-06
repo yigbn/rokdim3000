@@ -86,6 +86,32 @@ function listInstructorFiles(username: string): ReturnType<typeof mapInstructorF
   return rows.map(mapInstructorFile);
 }
 
+function deleteInstructorFile(username: string, fileId: number): InstructorFileRow | null {
+  const db = getDb();
+  const row = db
+    .prepare(
+      "SELECT id, username, original_name, stored_path, mime_type, size_bytes, uploaded_at FROM instructor_files WHERE id = ? AND username = ?",
+    )
+    .get(fileId, username) as InstructorFileRow | undefined;
+  if (!row) {
+    db.close();
+    return null;
+  }
+
+  db.prepare("DELETE FROM instructor_files WHERE id = ?").run(fileId);
+  db.close();
+
+  if (row.stored_path) {
+    const resolved = path.resolve(row.stored_path);
+    const uploadsRoot = path.resolve(instructorUploadsRoot);
+    if (resolved.startsWith(`${uploadsRoot}${path.sep}`) && fs.existsSync(resolved)) {
+      fs.unlinkSync(resolved);
+    }
+  }
+
+  return row;
+}
+
 function normalizeUsername(username: string): string {
   return username.trim().toLowerCase();
 }
@@ -379,6 +405,33 @@ router.put("/ratings/:danceId", requireInstructorToken, (req: InstructorTokenReq
   db.close();
 
   res.json({ danceId, knowledge: k, enjoyment: e, updatedAt: now });
+});
+
+/** Admin only: delete one uploaded file (DB row + file on disk). */
+router.delete("/:username/files/:fileId", requireAdminToken, (req, res) => {
+  const username = getUsernameFromParam(req.params.username);
+  const fileId = parseInt(String(req.params.fileId), 10);
+  if (!username) {
+    res.status(400).json({ error: "נא להזין שם משתמש מרקיד" });
+    return;
+  }
+  if (Number.isNaN(fileId) || fileId <= 0) {
+    res.status(400).json({ error: "מזהה קובץ לא תקף" });
+    return;
+  }
+
+  const deleted = deleteInstructorFile(username, fileId);
+  if (!deleted) {
+    res.status(404).json({ error: "קובץ לא נמצא" });
+    return;
+  }
+
+  res.json({
+    ok: true,
+    username,
+    deletedId: fileId,
+    deletedFile: mapInstructorFile(deleted),
+  });
 });
 
 /** Admin only: one instructor's notes and dance lists. */

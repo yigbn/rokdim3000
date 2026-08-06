@@ -240,6 +240,16 @@ export const admin = {
         files: InstructorFile[];
       }
     >(`/instructors/${encodeURIComponent(username)}`, { headers: adminHeaders() }),
+  deleteInstructorFile: (username: string, fileId: number) =>
+    request<{
+      ok: true;
+      username: string;
+      deletedId: number;
+      deletedFile: InstructorFile;
+    }>(`/instructors/${encodeURIComponent(username)}/files/${fileId}`, {
+      method: "DELETE",
+      headers: adminHeaders(),
+    }),
 };
 
 export const instructors = {
