@@ -95,38 +95,69 @@ textarea {
 }
 
 .landing-page header {
-  padding: 2rem 0 !important;
+  padding: 1rem 0 !important;
 }
 
 .landing-page header h1 {
-  font-size: 1.85rem !important;
+  font-size: 1.45rem !important;
+  line-height: 1.2;
 }
 
 .landing-page header p {
-  font-size: 1rem !important;
+  font-size: 0.88rem !important;
+  line-height: 1.35;
+}
+
+.landing-page header .btn {
+  padding: 0.38rem 0.85rem;
+  font-size: 0.86rem;
 }
 
 .landing-page .section {
-  padding: 1.25rem 0;
+  padding: 0.65rem 0;
+}
+
+.landing-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.25rem;
 }
 
 .landing-page .section-title {
-  font-size: 1.2rem;
-  margin-bottom: 0.6rem;
+  font-size: 1.05rem;
+  margin: 0;
 }
 
 .landing-page .section-content {
-  font-size: 0.92rem;
-  line-height: 1.55;
+  font-size: 0.84rem;
+  line-height: 1.36;
   text-wrap: pretty;
 }
 
 .landing-page .section-content p {
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.35rem;
+}
+
+.landing-read-more {
+  flex: 0 0 auto;
+  padding: 0.18rem 0.55rem;
+  font-size: 0.78rem;
+  border-width: 1px;
+}
+
+.landing-cta {
+  margin-top: 0.45rem;
+}
+
+.landing-cta .btn {
+  padding: 0.38rem 0.85rem;
+  font-size: 0.86rem;
 }
 
 .landing-page footer {
-  padding: 1.25rem 0 !important;
+  padding: 0.5rem 0 !important;
 }
 
 .instructor-page {

@@ -1,6 +1,40 @@
+import { useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 
 const NBSP = "\u00A0";
+
+type LandingSectionProps = {
+  title: string;
+  icon: string;
+  titleColor: string;
+  children: ReactNode;
+  shortContent: ReactNode;
+};
+
+function LandingSection({ title, icon, titleColor, children, shortContent }: LandingSectionProps) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <>
+      <div className="landing-section-heading">
+        <h2 className="section-title" style={{ color: titleColor }}>
+          <span aria-hidden>{icon}</span> {title}
+        </h2>
+        <button
+          type="button"
+          className="btn btn-secondary landing-read-more"
+          onClick={() => setExpanded((value) => !value)}
+          aria-expanded={expanded}
+        >
+          {expanded ? "פחות" : "עוד"}
+        </button>
+      </div>
+      <div className="section-content" style={{ color: "var(--step)" }}>
+        {expanded ? children : shortContent}
+      </div>
+    </>
+  );
+}
 
 export default function Landing() {
   return (
@@ -20,7 +54,7 @@ export default function Landing() {
           <p style={{ margin: 0, fontSize: "1.15rem", opacity: 0.95 }}>
             מהלך להכניס הרבה יותר מתחילים ומשתלבים למעגל הרוקדים
           </p>
-          <div style={{ marginTop: "1.5rem" }}>
+          <div style={{ marginTop: "0.75rem" }}>
             <Link to="/instructors" className="btn" style={{ background: "white", color: "var(--accent)", marginLeft: "0.5rem" }}>
               כניסת מרקידים
             </Link>
@@ -33,10 +67,21 @@ export default function Landing() {
 
       <section className="section" style={{ background: "var(--problem-bg)", borderBottom: "3px solid var(--problem)" }}>
         <div className="container">
-          <h2 className="section-title" style={{ color: "var(--problem)" }}>
-            <span aria-hidden>⚠️</span> הבעיה
-          </h2>
-          <div className="section-content" style={{ color: "var(--step)" }}>
+          <LandingSection
+            title="הבעיה"
+            icon="⚠️"
+            titleColor="var(--problem)"
+            shortContent={(
+              <>
+                <p>
+                  ריקודי העם בישראל הם עולם עשיר ושמח, אבל למתחילים, לרוקדי עבר ולרוקדים ברמות ביניים קשה לדעת איך להשתלב בפועל. יש אלפי ריקודים והרבה שונות בין הרקדות, ולכן לא תמיד ברור מה כדאי ללמוד, לאן ללכת ואיך להתקדם בלי להישאר מאחור.
+                </p>
+                <p>
+                  חסר בסיס מידע משותף ונגיש: אילו ריקודים מוכרים ברוב המקומות, מה מיוחד לכל הרקדה, ואיך אפשר לבנות מסלול כניסה שיעזור להגדיל את מספר הרוקדים בלי לפגוע בעושר ובייחודיות של המרקידים.
+                </p>
+              </>
+            )}
+          >
             <p>
               ריקודי העם בישראל הם עולם עשיר, שמח ומצליח, אבל לרבים קשה להיכנס אליו. מי שמגיעים מחוג מתחילים, רוקדי עבר שרוצים לחזור, או אנשים שפשוט רוצים להצטרף להרקדה, מגלים לא פעם שיש פער גדול בין הרצון לרקוד לבין היכולת להשתלב בפועל. אינדיקציה ברורה לזה היא הקושי למצוא רוקדים להרקדות מתחילים, והאחוז הנמוך של קודמים בהרקדות מתחילים שמצליחים בסופו של דבר להשתלב בהרקדות הגדולות. הבעיה שאנחנו באים לפתור היא הגדלת מספר הרוקדים — לא פגיעה במרקידים.
             </p>
@@ -52,16 +97,27 @@ export default function Landing() {
             <p>
               חסר לנו מידע בסיסי: אילו ריקודים באמת משותפים להרקדות רבות? איפה מתחיל יכול להשתלב? איזה רפרטואר מתאים לרוקדי עבר? ואיך בונים הרקדה שתאפשר לכמה שיותר אנשים לרקוד, ליהנות ולהתקדם? בעולם של שימוש מושכל במידע ו-AI, אי הסדר במידע המדויק בולט במיוחד ( למרות המאמץ והעבודה ההתנדבותית של רבים וטובים להנגיש, להדגים ולתת אינפורמציה על ריקודים והרקדות{NBSP}).
             </p>
-          </div>
+          </LandingSection>
         </div>
       </section>
 
       <section className="section" style={{ background: "var(--vision-bg)", borderBottom: "3px solid var(--vision)" }}>
         <div className="container">
-          <h2 className="section-title" style={{ color: "var(--vision)" }}>
-            <span aria-hidden>🎯</span> החזון
-          </h2>
-          <div className="section-content" style={{ color: "var(--step)" }}>
+          <LandingSection
+            title="החזון"
+            icon="🎯"
+            titleColor="var(--vision)"
+            shortContent={(
+              <>
+                <p>
+                  החזון הוא להשתמש במידע מהמרקידים ומהרוקדים כדי להבין מהם ריקודי הבסיס המשותפים, מה מיוחד לכל הרקדה, ואילו מסלולים יעזרו לרוקדים חדשים ומשתלבים להרגיש בבית מהר יותר.
+                </p>
+                <p>
+                  מתוך המידע הזה אפשר לבנות אוסף ריקודים חי ודינמי, ולתכנן הרקדות שמתאימות למקום, לזמן, לרמות הידע ולהעדפות של הרוקדים. כך ניתן להגדיל את קהילת הרוקדים, לפתוח הזדמנויות למרקידים, ועדיין לשמור על גיוון ועל ריקודים מיוחדים.
+                </p>
+              </>
+            )}
+          >
             <p>
               החזון הוא להשתמש במידע שנאסף מהמרקידים ומהרוקדים כדי לבנות מסלולי כניסה טובים יותר לריקודי עם: לדעת מהם הריקודים המשותפים, מהם הריקודים שמבדילים בין הרקדות, ואילו שילובים יאפשרו לרוקדים חדשים, רוקדי עבר ורוקדי ביניים להרגיש בבית מהר יותר.
             </p>
@@ -80,16 +136,27 @@ export default function Landing() {
             <p>
               קהל היעד המרכזי הוא מתחילים, משתלבים, רוקדי עבר ורוקדים ברמות ביניים. לאורך זמן, הגדלת המעגל הזה יכולה להגדיל גם את הביקוש להרקדות, ליצור הזדמנויות למרקידים חדשים, ולחזק את ההרקדות הוותיקות והגדולות.
             </p>
-          </div>
+          </LandingSection>
         </div>
       </section>
 
       <section className="section" style={{ background: "var(--step-bg)", borderBottom: "3px solid var(--step)" }}>
         <div className="container">
-          <h2 className="section-title" style={{ color: "var(--step)" }}>
-            <span aria-hidden>👣</span> התוכנית
-          </h2>
-          <div className="section-content" style={{ color: "var(--step)" }}>
+          <LandingSection
+            title="התוכנית"
+            icon="👣"
+            titleColor="var(--step)"
+            shortContent={(
+              <>
+                <p>
+                  בשלב הראשון מרקידים יוכלו להזין או להעלות את רשימות הריקודים שלהם, ולהוסיף הערות על אופי ההרקדה. מערכת AI תנתח את המידע, תזהה דפוסים, ותאזן בין ותק, גודל הרקדות, ז׳אנרים ויוצרים.
+                </p>
+                <p>
+                  בהמשך נצא לקהל רוקדים פוטנציאלי, ואם המהלך יצליח נשתמש במידע כדי להציע הרקדות ומסלולי כניסה שיעזרו לכמה שיותר רוקדים חדשים ומשתלבים להיכנס לעניינים.
+                </p>
+              </>
+            )}
+          >
             <p>
               <strong>שלב ראשון, כשלושה חודשים:</strong> כל מרקיד יקבל שם משתמש וסיסמה, ויוכל להזין רשימה של עד 300 ריקודי מעגל ועד 300 ריקודי זוגות בטקסט חופשי — או לעלות קובץ ישירות מהאתר. אפשר גם להוסיף הערות ולהסביר מה מאפיין את ההרקדה. מומלץ גם להיכנס ל<Link to="/dances">ריקודים</Link> ולהבין ( או להעיר על{NBSP}) איך תיראה רשימת הריקודים ואפשרויות ניהול הידע של הרוקדים.
             </p>
@@ -102,14 +169,14 @@ export default function Landing() {
             <p>
               <strong>שלב שלישי, אם שני השלבים הראשונים יצליחו:</strong> המערכת תנתח את המידע שנאסף ותציע הרקדות בארץ שיאפשרו לכמה שיותר רוקדים חדשים ומשתלבים להיכנס לעניינים, תוך שמירה על איכות, שמחה וגיוון.
             </p>
-            <div style={{ marginTop: "1rem" }}>
-              <Link to="/instructors" className="btn btn-primary" style={{ marginLeft: "0.5rem" }}>
-                כניסת מרקידים
-              </Link>
-              <Link to="/register" className="btn btn-secondary">
-                רוקדים? השאירו פרטים
-              </Link>
-            </div>
+          </LandingSection>
+          <div className="landing-cta">
+            <Link to="/instructors" className="btn btn-primary" style={{ marginLeft: "0.5rem" }}>
+              כניסת מרקידים
+            </Link>
+            <Link to="/register" className="btn btn-secondary">
+              רוקדים? השאירו פרטים
+            </Link>
           </div>
         </div>
       </section>
