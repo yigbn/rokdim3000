@@ -231,6 +231,28 @@ textarea {
   color: var(--text-muted);
 }
 
+.instructor-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.instructor-file-label {
+  cursor: pointer;
+}
+
+.instructor-file-label.is-disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .instructor-panel textarea {
   width: 100%;
   min-height: 7rem;
