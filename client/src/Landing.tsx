@@ -49,7 +49,7 @@ export default function Landing() {
       >
         <div className="container">
           <h1 style={{ margin: "0 0 0.5rem", fontSize: "2.25rem", fontWeight: 700 }}>
-            רוקדים 300 — ריקודי עם הדור הבא
+            רוקדים 300 : ריקודי עם - הדור הבא
           </h1>
           <p style={{ margin: 0, fontSize: "1.15rem", opacity: 0.95 }}>
             מהלך להכניס הרבה יותר מתחילים ומשתלבים למעגל הרוקדים
