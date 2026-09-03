@@ -21,11 +21,11 @@ const DANCE_TYPE_OPTIONS: { value: string; label: string }[] = [
 ];
 
 const SLIDER_LABELS: Record<number, string> = {
-  1: "הרבה מאוד",
-  2: "הרבה",
+  1: "מעט מאוד",
+  2: "מעט",
   3: "בינוני",
-  4: "מעט",
-  5: "מעט מאוד",
+  4: "הרבה",
+  5: "הרבה מאוד",
 };
 
 function getTypeLabel(type: string): string {
@@ -187,19 +187,17 @@ export default function Dances() {
   }
 
   const saveRatingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const ratingValuesRef = useRef({ knowledge: 3, enjoyment: 3, danceId: 0 });
-  ratingValuesRef.current = { knowledge: ratingKnowledge, enjoyment: ratingEnjoyment, danceId: selectedDanceId ?? 0 };
 
-  function scheduleRatingSave() {
+  function scheduleRatingSave(knowledge: number, enjoyment: number) {
     if (!canRate || !selectedDanceId) return;
+    const danceId = selectedDanceId;
+    const saveAsInstructor = useInstructorRatings;
     if (saveRatingTimeoutRef.current) clearTimeout(saveRatingTimeoutRef.current);
     saveRatingTimeoutRef.current = setTimeout(async () => {
       saveRatingTimeoutRef.current = null;
-      const { knowledge, enjoyment, danceId } = ratingValuesRef.current;
-      if (!danceId) return;
       setRatingSaving(true);
       try {
-        if (useInstructorRatings) {
+        if (saveAsInstructor) {
           await instructorsApi.setRating(danceId, knowledge, enjoyment);
         } else {
           await danceRatings.set(danceId, knowledge, enjoyment);
@@ -257,7 +255,7 @@ export default function Dances() {
       <aside className="dances-rating-panel">
         <h3>דירוג: {selectedDance.name}</h3>
         <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", margin: "0 0 0.75rem" }}>
-          1 = הרבה מאוד, 5 = מעט מאוד. נשמר אוטומטית.
+          1 = מעט מאוד, 5 = הרבה מאוד. נשמר אוטומטית.
         </p>
         <div className="dances-rating-sliders">
           <div>
@@ -271,14 +269,15 @@ export default function Dances() {
               list="dance-rating-ticks"
               value={ratingKnowledge}
               onChange={(e) => {
-                setRatingKnowledge(parseInt(e.target.value, 10));
-                scheduleRatingSave();
+                const knowledge = parseInt(e.target.value, 10);
+                setRatingKnowledge(knowledge);
+                scheduleRatingSave(knowledge, ratingEnjoyment);
               }}
-              style={{ width: "100%" }}
+              style={{ width: "100%", direction: "ltr" }}
             />
             <div className="slider-hint">
-              <span>1 (הרבה מאוד)</span>
-              <span>5 (מעט מאוד)</span>
+              <span>1 (מעט מאוד)</span>
+              <span>5 (הרבה מאוד)</span>
             </div>
             <span className="slider-value">{SLIDER_LABELS[ratingKnowledge]}</span>
           </div>
@@ -293,14 +292,15 @@ export default function Dances() {
               list="dance-rating-ticks"
               value={ratingEnjoyment}
               onChange={(e) => {
-                setRatingEnjoyment(parseInt(e.target.value, 10));
-                scheduleRatingSave();
+                const enjoyment = parseInt(e.target.value, 10);
+                setRatingEnjoyment(enjoyment);
+                scheduleRatingSave(ratingKnowledge, enjoyment);
               }}
-              style={{ width: "100%" }}
+              style={{ width: "100%", direction: "ltr" }}
             />
             <div className="slider-hint">
-              <span>1 (הרבה מאוד)</span>
-              <span>5 (מעט מאוד)</span>
+              <span>1 (מעט מאוד)</span>
+              <span>5 (הרבה מאוד)</span>
             </div>
             <span className="slider-value">{SLIDER_LABELS[ratingEnjoyment]}</span>
           </div>

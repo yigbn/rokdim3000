@@ -44,8 +44,8 @@ router.put("/:danceId", (req, res) => {
     return;
   }
   const { knowledge, enjoyment } = req.body as { knowledge?: number; enjoyment?: number };
-  const k = typeof knowledge === "number" && knowledge >= 1 && knowledge <= 5 ? knowledge : 3;
-  const e = typeof enjoyment === "number" && enjoyment >= 1 && enjoyment <= 5 ? enjoyment : 3;
+  const k = Number.isInteger(knowledge) && knowledge! >= 1 && knowledge! <= 5 ? knowledge! : 3;
+  const e = Number.isInteger(enjoyment) && enjoyment! >= 1 && enjoyment! <= 5 ? enjoyment! : 3;
   const db = getDb();
   const now = Date.now();
   db.prepare(
