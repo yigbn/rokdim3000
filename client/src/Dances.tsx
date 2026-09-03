@@ -273,7 +273,7 @@ export default function Dances() {
                 setRatingKnowledge(knowledge);
                 scheduleRatingSave(knowledge, ratingEnjoyment);
               }}
-              style={{ width: "100%", direction: "ltr" }}
+              style={{ width: "100%", direction: "rtl" }}
             />
             <div className="slider-hint">
               <span>1 (מעט מאוד)</span>
@@ -296,7 +296,7 @@ export default function Dances() {
                 setRatingEnjoyment(enjoyment);
                 scheduleRatingSave(ratingKnowledge, enjoyment);
               }}
-              style={{ width: "100%", direction: "ltr" }}
+              style={{ width: "100%", direction: "rtl" }}
             />
             <div className="slider-hint">
               <span>1 (מעט מאוד)</span>

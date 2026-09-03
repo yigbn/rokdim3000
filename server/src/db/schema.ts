@@ -117,35 +117,6 @@ export function initDb(db: Database.Database): void {
   migrateDancesTable(db);
   migrateInstructorAuth(db);
   migrateInstructorContacts(db);
-  migrateRatingScale(db);
-}
-
-/** Preserve the meaning of existing ratings after changing the scale to 5 = very much. */
-export function migrateRatingScale(db: Database.Database): void {
-  const migrationName = "rating_scale_5_is_very_much";
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS schema_migrations (
-      name TEXT PRIMARY KEY,
-      applied_at INTEGER NOT NULL
-    )
-  `);
-
-  const alreadyApplied = db
-    .prepare("SELECT 1 FROM schema_migrations WHERE name = ?")
-    .get(migrationName);
-  if (alreadyApplied) return;
-
-  db.transaction(() => {
-    db.exec(`
-      UPDATE user_dance_ratings
-      SET knowledge = 6 - knowledge, enjoyment = 6 - enjoyment;
-
-      UPDATE instructor_dance_ratings
-      SET knowledge = 6 - knowledge, enjoyment = 6 - enjoyment;
-    `);
-    db.prepare("INSERT INTO schema_migrations (name, applied_at) VALUES (?, ?)")
-      .run(migrationName, Date.now());
-  })();
 }
 
 /** Add creator and year_of_creation to dances if missing (for existing DBs). */

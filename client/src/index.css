@@ -429,7 +429,7 @@ textarea {
   justify-content: space-between;
   font-size: 0.75rem;
   color: var(--text-muted);
-  direction: ltr;
+  direction: rtl;
   margin-bottom: 0.15rem;
 }
 
